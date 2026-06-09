@@ -63,9 +63,37 @@
       color: var(--sidebar-text);
       display: flex;
       flex-direction: column;
-      padding: 18px 14px 14px;
+      position: relative;
+      overflow: hidden;
       border-right: 1px solid var(--sidebar-border);
       transition: background 0.25s;
+    }
+    .sidebar-inner {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 14px 14px;
+    }
+    /* full-height branding pattern layer behind the nav */
+    .sidebar-art {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    /* fades the pattern out toward the top so menu items stay legible */
+    .sidebar-fade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(to bottom,
+        var(--sidebar-bg) 0%,
+        color-mix(in srgb, var(--sidebar-bg) 78%, transparent) 26%,
+        transparent 58%);
     }
     .brand-row {
       display: flex; align-items: center; gap: 11px;
@@ -122,16 +150,7 @@
     .profile .prole { font-size: 12px; color: var(--sidebar-text-muted); }
     .profile .dots { margin-left: auto; color: var(--sidebar-text-muted); }
 
-    /* ----- Branding pattern canvas (switchable in Theme Lab) ----- */
-    .brand-art {
-      height: 86px;
-      margin: 14px 4px 2px;
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-      background-color: rgba(255,255,255,0.02);
-    }
-    /* Each pattern tints itself with the live --accent via color-mix */
+    /* ----- Branding patterns: each tints itself with the live --accent ----- */
     .p-none { background: none; }
 
     .p-dots {
@@ -360,6 +379,9 @@
   <div class="app">
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
+      <div class="sidebar-art p-marks" id="brandArt"></div>
+      <div class="sidebar-fade"></div>
+      <div class="sidebar-inner">
       <div class="brand-row">
         <span class="mark">
           <svg viewBox="0 0 46 46" fill="none"><path d="M0 23.07l23 23.11 23-23.11L23 0 0 23.07Z" fill="#fff"/><path d="M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z" fill="var(--accent)"/></svg>
@@ -431,7 +453,7 @@
         </div>
         <span class="dots"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></span>
       </div>
-      <div class="brand-art p-marks" id="brandArt" title="Branding element (switch in Theme Lab)"></div>
+      </div>
     </aside>
 
     <!-- ============ MAIN ============ -->
@@ -670,7 +692,7 @@
 
     function applyPattern(cls) {
       activePattern = cls;
-      brandArt.className = "brand-art " + cls;
+      brandArt.className = "sidebar-art " + cls;
       document.querySelectorAll(".pat-thumb").forEach(t => t.classList.toggle("active", t.dataset.cls === cls));
     }
     document.querySelectorAll(".pat-thumb").forEach(t => t.onclick = () => applyPattern(t.dataset.cls));
