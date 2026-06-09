@@ -135,7 +135,9 @@
       padding: 18px 12px 8px;
     }
 
-    .sidebar .spacer { flex: 1; position: relative; overflow: hidden; }
+    /* negative horizontal margins cancel the inner padding (14px) so the
+       pattern spans the full width of the sidebar, edge to edge */
+    .sidebar .spacer { flex: 1; position: relative; overflow: hidden; margin-left: -14px; margin-right: -14px; }
 
     .profile {
       display: flex; align-items: center; gap: 11px;
