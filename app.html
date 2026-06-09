@@ -84,7 +84,8 @@
       opacity: 0.55;
       pointer-events: none;
     }
-    /* fades the pattern out toward the top so menu items stay legible */
+    /* fades the pattern out at the top (under the nav) and at the bottom
+       (above the Help Centre + profile copy) so it never overlaps text */
     .sidebar-fade {
       position: absolute;
       inset: 0;
@@ -92,8 +93,11 @@
       pointer-events: none;
       background: linear-gradient(to bottom,
         var(--sidebar-bg) 0%,
-        color-mix(in srgb, var(--sidebar-bg) 78%, transparent) 26%,
-        transparent 58%);
+        color-mix(in srgb, var(--sidebar-bg) 78%, transparent) 24%,
+        transparent 50%,
+        transparent calc(100% - 170px),
+        color-mix(in srgb, var(--sidebar-bg) 80%, transparent) calc(100% - 130px),
+        var(--sidebar-bg) calc(100% - 96px));
     }
     .brand-row {
       display: flex; align-items: center; gap: 11px;
