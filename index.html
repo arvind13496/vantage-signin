@@ -5,26 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vantage — Sign in</title>
   <style>
-    /* Vantage Brand Palette — overridden at runtime via ?palette= URL param.
-       Defaults to Meridian. Anchor #083344 is shared across all 4 palettes. */
+    /* White-label theme contract — injected by vantage-theme.js at runtime
+       from ?foundation=Slate&brand=vantage (or ?primary=&accent=).
+       Values below are Slate + Vantage fallbacks for first paint. */
     :root {
-      --primary: #083344;
-      --canvas: #FAF8F2;
-      --structure: #ECE6D6;
-      --structure-border: #DDD6C2;
-      --lift: #8B6914;
-      --spark: #C2410C;
-      --muted-color: #6B6256;
+      --canvas:#FFFFFF; --surface:#F6F8FA; --surface-alt:#EDF1F6; --hairline:#E2E8F0;
+      --ink:#0B1520; --ink-muted:#5B6B7B; --ink-subtle:#94A2B0;
+      --brand:#083344; --on-brand:#FFFFFF; --brand-weak:rgba(8,51,68,0.10);
+      --accent:#36C5A6; --on-accent:#0B1117;
 
-      --ink: var(--primary);
-      --muted: var(--muted-color);
-      --line: var(--structure-border);
-      --field-border: var(--structure-border);
-      --btn: var(--primary);
-      --accent: var(--spark);
+      /* page aliases */
+      --muted: var(--ink-muted);
+      --line: var(--hairline);
+      --field-border: var(--hairline);
+      --btn: var(--brand);
       --grad-a: var(--canvas);
-      --grad-b: var(--structure);
-      --grad-c: color-mix(in srgb, var(--structure) 70%, var(--lift));
+      --grad-b: var(--surface);
+      --grad-c: var(--surface-alt);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -69,13 +66,13 @@
       letter-spacing: -0.02em;
     }
 
-    .hero h1 .dim { color: var(--muted-color); }
+    .hero h1 .dim { color: var(--ink-muted); }
 
     .mockup {
       margin-top: 56px;
       max-width: 640px;
       width: 100%;
-      background: #fff;
+      background: var(--surface);
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 40px 80px -28px rgba(80, 50, 30, 0.38),
@@ -87,11 +84,11 @@
       align-items: center;
       gap: 9px;
       padding: 0 18px;
-      background: #fdfcfb;
+      background: var(--surface-alt);
     }
     .mockup .chrome span {
       width: 11px; height: 11px; border-radius: 50%;
-      background: #dcd6cf;
+      background: var(--hairline);
     }
     .mockup img {
       display: block;
@@ -107,19 +104,20 @@
     .auth-wrap { display: flex; justify-content: center; }
 
     .card {
-      background: #fff;
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
       width: 100%;
       max-width: 430px;
       border-radius: 22px;
       padding: 44px 44px 32px;
-      box-shadow: 0 30px 70px -25px rgba(80, 50, 30, 0.30);
+      box-shadow: 0 30px 70px -25px rgba(16, 24, 40, 0.18);
     }
 
     .brand {
       display: flex; align-items: center; justify-content: center;
       margin-bottom: 8px;
     }
-    .brand svg { height: 34px; width: auto; display: block; fill: #111; }
+    .brand svg { height: 34px; width: auto; display: block; fill: var(--ink); }
 
     .brand-sub {
       text-align: center;
@@ -136,13 +134,13 @@
       padding: 13px;
       border: 1px solid var(--field-border);
       border-radius: 999px;
-      background: #fff;
+      background: var(--surface);
       font-size: 15px; font-weight: 600; color: var(--ink);
       cursor: pointer;
       margin-bottom: 14px;
       transition: background 0.15s, border-color 0.15s;
     }
-    .oauth:hover { background: #faf8f6; border-color: #d8d2cb; }
+    .oauth:hover { background: var(--surface-alt); border-color: var(--ink-subtle); }
     .oauth svg, .oauth img { width: 18px; height: 18px; }
 
     .divider {
@@ -163,8 +161,9 @@
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .field::placeholder { color: #b3ada7; }
-    .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(242,107,58,0.12); }
+    .field { background: var(--surface); color: var(--ink); }
+    .field::placeholder { color: var(--ink-subtle); }
+    .field:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-weak); }
 
     .submit {
       width: 100%;
@@ -172,13 +171,13 @@
       border: none;
       border-radius: 12px;
       background: var(--btn);
-      color: #fff;
+      color: var(--on-brand);
       font-size: 16px; font-weight: 600;
       cursor: pointer;
       margin-top: 4px;
-      transition: background 0.15s;
+      transition: filter 0.15s;
     }
-    .submit:hover { background: #6c6965; }
+    .submit:hover { filter: brightness(1.1); }
 
     .terms {
       text-align: center;
@@ -204,7 +203,7 @@
     .corner-badge {
       position: fixed; left: 22px; bottom: 18px;
       width: 40px; height: 40px; border-radius: 50%;
-      background: #1c1a19; color: #fff;
+      background: var(--ink); color: var(--canvas);
       display: flex; align-items: center; justify-content: center;
       font-weight: 700; font-size: 16px;
     }
@@ -290,24 +289,12 @@
 
   <div class="corner-badge">N</div>
 
+  <script src="vantage-theme.js"></script>
   <script>
-    /* Vantage Brand Palettes — switchable via ?palette=Meridian|Atrium|Dockside|Polaris */
-    const PALETTES = {
-      "Meridian": { primary:"#083344", canvas:"#FAF8F2", structure:"#ECE6D6", structureBorder:"#DDD6C2", lift:"#8B6914", spark:"#C2410C", muted:"#6B6256" },
-      "Atrium":   { primary:"#083344", canvas:"#FFFFFF", structure:"#F1F3F5", structureBorder:"#E2E5E8", lift:"#0E7C7B", spark:"#B5482F", muted:"#5C6770" },
-      "Dockside": { primary:"#083344", canvas:"#F4EFE6", structure:"#DDD3BE", structureBorder:"#CCC1A8", lift:"#6B4423", spark:"#B7410E", muted:"#6B5E48" },
-      "Polaris":  { primary:"#083344", canvas:"#F7F8FA", structure:"#E2E8F0", structureBorder:"#CBD2DC", lift:"#1E40AF", spark:"#BE185D", muted:"#525C68" },
-    };
-    const name = new URLSearchParams(location.search).get("palette");
-    const p = PALETTES[name] || PALETTES["Meridian"];
-    const r = document.documentElement.style;
-    r.setProperty("--primary", p.primary);
-    r.setProperty("--canvas", p.canvas);
-    r.setProperty("--structure", p.structure);
-    r.setProperty("--structure-border", p.structureBorder);
-    r.setProperty("--lift", p.lift);
-    r.setProperty("--spark", p.spark);
-    r.setProperty("--muted-color", p.muted);
+    /* White-label theme — ?foundation=Slate|Porcelain|Graphite|Mist & ?brand=vantage|salesforce|slack|lighthouse
+       (or ?primary=%23xxxxxx&accent=%23yyyyyy&tenant=Name) */
+    const { foundation, brand } = VantageTheme.fromUrl();
+    VantageTheme.apply(document.documentElement.style, foundation, brand);
   </script>
 </body>
 </html>

@@ -505,21 +505,23 @@
 
   <div class="lab" id="lab">
     <h3>Vantage Theme Lab</h3>
-    <div class="sub">Pick a preset, then fine-tune brand colors live.</div>
+    <div class="sub">Pick a Vantage foundation (90%), then load one tenant brand colour (10%).</div>
 
-    <div class="group-label">Presets</div>
+    <div class="group-label">Foundation · Vantage owns</div>
     <div class="presets" id="presets"></div>
 
-    <div class="group-label">Brand colors</div>
+    <div class="group-label">Tenant brand · one colour + accent</div>
+    <div class="presets" id="brands"></div>
     <div id="pickers"></div>
 
     <div class="group-label">Branding pattern</div>
     <div class="patterns" id="patterns"></div>
 
-    <button class="reset" id="reset">Reset to preset</button>
+    <button class="reset" id="reset">Reset brand colours</button>
     <button class="export" id="export">Copy CSS variables</button>
   </div>
 
+  <script src="vantage-theme.js"></script>
   <script>
     /* ---------- Prospect data ---------- */
     const data = [
@@ -552,123 +554,80 @@
         <div class="cell">${d.stage}</div>
       </div>`).join("");
 
-    /* ---------- Theme system ---------- */
-    const TOKENS = [
-      { key:"--accent",            label:"Accent / Primary" },
-      { key:"--sidebar-bg",        label:"Sidebar background" },
-      { key:"--app-bg",            label:"Content background" },
-      { key:"--text",              label:"Primary text" },
-      { key:"--border",            label:"Borders & dividers" },
-    ];
+    /* ---------- Theme: foundation (90%) + ONE tenant brand colour (10%) ---------- */
+    const root = document.documentElement;
+    const F = VantageTheme.FOUNDATIONS;
+    const B = VantageTheme.BRANDS;
+    let state = { foundation: "Slate", brand: { ...B.vantage } };
 
-    /* Vantage Brand Palettes — all anchored on primary #083344 (deep teal).
-       Each palette's tokens are mapped onto the Theme Lab CSS variables. */
-    const PALETTES = {
-      "Meridian": { primary:"#083344", canvas:"#FAF8F2", structure:"#ECE6D6", structureBorder:"#DDD6C2", lift:"#8B6914", spark:"#C2410C", muted:"#6B6256", archetype:"Heritage Private Bank" },
-      "Atrium":   { primary:"#083344", canvas:"#FFFFFF", structure:"#F1F3F5", structureBorder:"#E2E5E8", lift:"#0E7C7B", spark:"#B5482F", muted:"#5C6770", archetype:"Modern Institutional" },
-      "Dockside": { primary:"#083344", canvas:"#F4EFE6", structure:"#DDD3BE", structureBorder:"#CCC1A8", lift:"#6B4423", spark:"#B7410E", muted:"#6B5E48", archetype:"Earthy Maritime" },
-      "Polaris":  { primary:"#083344", canvas:"#F7F8FA", structure:"#E2E8F0", structureBorder:"#CBD2DC", lift:"#1E40AF", spark:"#BE185D", muted:"#525C68", archetype:"Cool Wealth-Tech" },
-    };
-    function paletteVars(p) {
-      const mix = (a, pct, b) => `color-mix(in srgb, ${a} ${pct}%, ${b})`;
+    /* Map the shared contract vars onto this page's existing var names. */
+    function appVars(fKey, brand){
+      const v = VantageTheme.vars(fKey, brand);
       return {
-        "--sidebar-bg": p.primary,
-        "--sidebar-text": p.canvas,
-        "--sidebar-text-muted": mix(p.canvas, 60, "transparent"),
-        "--sidebar-section": mix(p.canvas, 45, "transparent"),
-        "--sidebar-active-bg": mix(p.spark, 22, "transparent"),
-        "--sidebar-active-text": "#ffffff",
-        "--sidebar-border": mix(p.canvas, 10, "transparent"),
-        "--app-bg": p.canvas,
-        "--surface": "#ffffff",
-        "--text": p.primary,
-        "--text-muted": p.muted,
-        "--text-faint": mix(p.muted, 70, "transparent"),
-        "--border": p.structureBorder,
-        "--row-border": p.structure,
-        "--row-hover": mix(p.structure, 50, "transparent"),
-        "--input-bg": "#ffffff",
-        "--input-border": p.structureBorder,
-        "--input-text": p.primary,
-        "--accent": p.spark,
-        "--accent-text": "#ffffff",
-        "--accent-weak": mix(p.spark, 15, "transparent"),
-        "--icon": p.muted,
-        "--badge-border": p.structureBorder,
-        "--badge-text": p.muted,
+        "--sidebar-bg": v["--surface"],
+        "--sidebar-text": v["--ink"],
+        "--sidebar-text-muted": v["--ink-muted"],
+        "--sidebar-section": v["--ink-subtle"],
+        "--sidebar-active-bg": v["--brand"],
+        "--sidebar-active-text": v["--on-brand"],
+        "--sidebar-border": v["--hairline"],
+        "--app-bg": v["--canvas"],
+        "--surface": v["--surface"],
+        "--text": v["--ink"],
+        "--text-muted": v["--ink-muted"],
+        "--text-faint": v["--ink-subtle"],
+        "--border": v["--hairline"],
+        "--row-border": v["--hairline"],
+        "--row-hover": v["--surface-alt"],
+        "--input-bg": v["--canvas"],
+        "--input-border": v["--hairline"],
+        "--input-text": v["--ink"],
+        "--accent": v["--brand"],
+        "--accent-text": v["--on-brand"],
+        "--accent-weak": v["--brand-weak"],
+        "--icon": v["--ink-muted"],
+        "--badge-border": v["--hairline"],
+        "--badge-text": v["--ink-muted"],
       };
     }
-    const PRESETS = Object.fromEntries(
-      Object.entries(PALETTES).map(([name, p]) => [name, { swatch: p.spark, vars: paletteVars(p) }])
-    );
-
-    const root = document.documentElement;
-    let activePreset = "Meridian";
-
-    function applyVars(vars) {
-      Object.entries(vars).forEach(([k,v]) => root.style.setProperty(k, v));
-    }
-    function applyPreset(name) {
-      activePreset = name;
-      applyVars(PRESETS[name].vars);
+    function applyTheme(){
+      Object.entries(appVars(state.foundation, state.brand)).forEach(([k,val]) => root.style.setProperty(k,val));
+      document.querySelectorAll("[data-fnd]").forEach(el => el.classList.toggle("active", el.dataset.fnd === state.foundation));
+      document.querySelectorAll("[data-brand]").forEach(el => el.classList.toggle("active", el.dataset.brand === state.brand.key));
       syncPickers();
-      document.querySelectorAll(".preset").forEach(p => p.classList.toggle("active", p.dataset.name === name));
     }
 
-    function currentVal(key){
-      const inline = root.style.getPropertyValue(key).trim();
-      return inline || getComputedStyle(root).getPropertyValue(key).trim();
-    }
-    function toHex(v){
-      v = v.trim();
-      if (v.startsWith("#")) return v.length===4 ? "#"+[...v.slice(1)].map(c=>c+c).join("") : v;
-      const m = v.match(/rgba?\(([^)]+)\)/);
-      if (m){ const [r,g,b]=m[1].split(",").map(n=>parseInt(n)); return "#"+[r,g,b].map(x=>x.toString(16).padStart(2,"0")).join(""); }
-      return "#000000";
-    }
-
-    // build presets UI
-    document.getElementById("presets").innerHTML = Object.entries(PRESETS).map(([name,p])=>`
-      <div class="preset" data-name="${name}">
-        <div class="swatch" style="background:${p.swatch}"></div>${name}
+    // Foundation presets (90% — Vantage owns)
+    document.getElementById("presets").innerHTML = Object.values(F).map(f=>`
+      <div class="preset" data-fnd="${f.name}">
+        <div class="swatch" style="background:${f.surface};border:1px solid ${f.hairline}"></div>${f.name}
       </div>`).join("");
-    document.querySelectorAll(".preset").forEach(p => p.onclick = () => applyPreset(p.dataset.name));
+    document.querySelectorAll("[data-fnd]").forEach(el => el.onclick = () => { state.foundation = el.dataset.fnd; applyTheme(); });
 
-    // build pickers UI
-    document.getElementById("pickers").innerHTML = TOKENS.map(t=>`
+    // Brand chips (10% — one tenant colour + accent)
+    document.getElementById("brands").innerHTML = Object.values(B).map(b=>`
+      <div class="preset" data-brand="${b.key}">
+        <div class="swatch" style="background:${b.primary}"></div>${b.name}
+      </div>`).join("");
+    document.querySelectorAll("[data-brand]").forEach(el => el.onclick = () => { state.brand = { ...B[el.dataset.brand] }; applyTheme(); });
+
+    // Pickers: brand colour + accent only
+    const PICKS = [ { key:"primary", label:"Brand colour" }, { key:"accent", label:"Accent" } ];
+    document.getElementById("pickers").innerHTML = PICKS.map(p=>`
       <div class="picker">
-        <label>${t.label}</label>
-        <div class="ctl">
-          <span class="hex" id="hex-${t.key}"></span>
-          <input type="color" data-key="${t.key}" />
-        </div>
+        <label>${p.label}</label>
+        <div class="ctl"><span class="hex" id="hex-${p.key}"></span><input type="color" data-pick="${p.key}" /></div>
       </div>`).join("");
-
     function syncPickers(){
-      TOKENS.forEach(t=>{
-        const hex = toHex(currentVal(t.key));
-        const inp = document.querySelector(`input[data-key="${t.key}"]`);
-        if (inp) inp.value = hex;
-        const lbl = document.getElementById("hex-"+t.key);
-        if (lbl) lbl.textContent = hex;
+      PICKS.forEach(p=>{
+        const val = state.brand[p.key] || state.brand.primary;
+        const inp = document.querySelector(`input[data-pick="${p.key}"]`); if(inp) inp.value = val;
+        const lbl = document.getElementById("hex-"+p.key); if(lbl) lbl.textContent = String(val).toUpperCase();
       });
     }
-    document.querySelectorAll('input[type="color"]').forEach(inp=>{
-      inp.oninput = e => {
-        const key = e.target.dataset.key, val = e.target.value;
-        root.style.setProperty(key, val);
-        document.getElementById("hex-"+key).textContent = val;
-        // keep accent-text readable + derive accent-weak
-        if (key === "--accent") {
-          root.style.setProperty("--accent-weak", val + "22");
-          root.style.setProperty("--accent-text", isLight(val) ? "#1a1d21" : "#ffffff");
-        }
-      };
+    document.querySelectorAll('input[data-pick]').forEach(inp=>{
+      inp.oninput = e => { state.brand = { ...state.brand, key:"custom", name:"Custom", [e.target.dataset.pick]: e.target.value }; applyTheme(); };
     });
-    function isLight(hex){
-      const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-      return (0.299*r+0.587*g+0.114*b) > 165;
-    }
 
     /* ---------- Branding patterns ---------- */
     const PATTERNS = [
@@ -700,11 +659,10 @@
     document.querySelectorAll(".pat-thumb").forEach(t => t.onclick = () => applyPattern(t.dataset.cls));
     applyPattern("p-marks");
 
-    document.getElementById("reset").onclick = () => applyPreset(activePreset);
+    document.getElementById("reset").onclick = () => { state.brand = { ...B.vantage }; applyTheme(); };
     document.getElementById("export").onclick = () => {
-      const lines = [":root {"];
-      Object.keys(PRESETS["Meridian"].vars).forEach(k => lines.push(`  ${k}: ${currentVal(k)};`));
-      lines.push("}");
+      const v = VantageTheme.vars(state.foundation, state.brand);
+      const lines = [":root {", ...Object.entries(v).map(([k,val]) => `  ${k}: ${val};`), "}"];
       navigator.clipboard.writeText(lines.join("\n"));
       const b = document.getElementById("export"); const t=b.textContent;
       b.textContent = "Copied ✓"; setTimeout(()=>b.textContent=t, 1400);
@@ -712,9 +670,12 @@
 
     document.getElementById("labToggle").onclick = () => document.getElementById("lab").classList.toggle("open");
 
-    /* Allow ?palette=Meridian|Atrium|Dockside|Polaris in the URL for deep-linking */
-    const urlPalette = new URLSearchParams(window.location.search).get("palette");
-    applyPreset(PRESETS[urlPalette] ? urlPalette : "Meridian");
+    /* Deep-link: ?foundation=Slate|Porcelain|Graphite|Mist & ?brand=vantage|salesforce|slack|lighthouse
+       (or ?primary=%23xxxxxx&accent=%23yyyyyy) */
+    const sel = VantageTheme.fromUrl();
+    state.foundation = sel.foundation;
+    state.brand = sel.brand.key ? { ...sel.brand } : sel.brand;
+    applyTheme();
   </script>
 </body>
 </html>
