@@ -5,13 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vantage — Sign in</title>
   <style>
+    /* Vantage Brand Palette — overridden at runtime via ?palette= URL param.
+       Defaults to Meridian. Anchor #083344 is shared across all 4 palettes. */
     :root {
-      --ink: #1a1a1a;
-      --muted: #8a8a8a;
-      --line: #e6e0da;
-      --field-border: #e2ddd6;
-      --btn: #7d7a76;
-      --accent: #f26b3a;
+      --primary: #083344;
+      --canvas: #FAF8F2;
+      --structure: #ECE6D6;
+      --structure-border: #DDD6C2;
+      --lift: #8B6914;
+      --spark: #C2410C;
+      --muted-color: #6B6256;
+
+      --ink: var(--primary);
+      --muted: var(--muted-color);
+      --line: var(--structure-border);
+      --field-border: var(--structure-border);
+      --btn: var(--primary);
+      --accent: var(--spark);
+      --grad-a: var(--canvas);
+      --grad-b: var(--structure);
+      --grad-c: color-mix(in srgb, var(--structure) 70%, var(--lift));
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,7 +33,7 @@
       font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: var(--ink);
       min-height: 100vh;
-      background: linear-gradient(135deg, #fdf0e6 0%, #fbe4d4 45%, #f7d9c4 100%);
+      background: linear-gradient(135deg, var(--grad-a) 0%, var(--grad-b) 45%, var(--grad-c) 100%);
       display: flex;
       flex-direction: column;
     }
@@ -56,7 +69,7 @@
       letter-spacing: -0.02em;
     }
 
-    .hero h1 .dim { color: #6f6a66; }
+    .hero h1 .dim { color: var(--muted-color); }
 
     .mockup {
       margin-top: 56px;
@@ -276,5 +289,25 @@
   </footer>
 
   <div class="corner-badge">N</div>
+
+  <script>
+    /* Vantage Brand Palettes — switchable via ?palette=Meridian|Atrium|Dockside|Polaris */
+    const PALETTES = {
+      "Meridian": { primary:"#083344", canvas:"#FAF8F2", structure:"#ECE6D6", structureBorder:"#DDD6C2", lift:"#8B6914", spark:"#C2410C", muted:"#6B6256" },
+      "Atrium":   { primary:"#083344", canvas:"#FFFFFF", structure:"#F1F3F5", structureBorder:"#E2E5E8", lift:"#0E7C7B", spark:"#B5482F", muted:"#5C6770" },
+      "Dockside": { primary:"#083344", canvas:"#F4EFE6", structure:"#DDD3BE", structureBorder:"#CCC1A8", lift:"#6B4423", spark:"#B7410E", muted:"#6B5E48" },
+      "Polaris":  { primary:"#083344", canvas:"#F7F8FA", structure:"#E2E8F0", structureBorder:"#CBD2DC", lift:"#1E40AF", spark:"#BE185D", muted:"#525C68" },
+    };
+    const name = new URLSearchParams(location.search).get("palette");
+    const p = PALETTES[name] || PALETTES["Meridian"];
+    const r = document.documentElement.style;
+    r.setProperty("--primary", p.primary);
+    r.setProperty("--canvas", p.canvas);
+    r.setProperty("--structure", p.structure);
+    r.setProperty("--structure-border", p.structureBorder);
+    r.setProperty("--lift", p.lift);
+    r.setProperty("--spark", p.spark);
+    r.setProperty("--muted-color", p.muted);
+  </script>
 </body>
 </html>

@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vantage — Brand Setup (White-Label Admin)</title>
+  <style>
+    :root {
+      --primary: #083344;
+      --canvas: #FAF8F2;
+      --structure: #ECE6D6;
+      --structure-border: #DDD6C2;
+      --lift: #8B6914;
+      --spark: #C2410C;
+      --muted: #6B6256;
+
+      --ink: #0f1419;
+      --page-bg: #F5F4F0;
+      --surface: #ffffff;
+      --border: #E2DFD7;
+      --text-muted: #6B6E6A;
+      --text-body: #2C3E45;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--page-bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- top bar ---------- */
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 32px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar .left { display: flex; align-items: center; gap: 14px; }
+    .logo-mark {
+      width: 28px; height: 28px; border-radius: 4px;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark span {
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 2px solid var(--canvas);
+    }
+    .word { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: var(--primary); }
+    .sub  { font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
+    .topbar .right { display: flex; gap: 14px; align-items: center; }
+    .badge-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-muted);
+    }
+    .badge-chip i {
+      width: 10px; height: 10px; border-radius: 2px;
+      background: var(--primary); display: inline-block;
+    }
+
+    /* ---------- page layout ---------- */
+    .page {
+      max-width: 1320px; margin: 0 auto;
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .heading-block { grid-column: 1 / -1; margin-bottom: 4px; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; font-weight: 500; }
+    .h1 { font-size: 38px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.05; color: var(--primary); margin-bottom: 10px; }
+    .h1 .dim { color: var(--text-muted); }
+    .lead { font-size: 15px; line-height: 1.55; color: var(--text-body); max-width: 65ch; }
+
+    /* ---------- form column ---------- */
+    .form { display: flex; flex-direction: column; gap: 20px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 22px 24px;
+    }
+    .card h3 {
+      font-size: 14px; font-weight: 500;
+      color: var(--primary);
+      margin-bottom: 4px;
+      letter-spacing: -0.005em;
+    }
+    .card .helper {
+      font-size: 12px; color: var(--text-muted);
+      margin-bottom: 18px; line-height: 1.5;
+    }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block; font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .field input[type="text"] {
+      width: 100%; padding: 9px 12px;
+      border: 1px solid var(--border); border-radius: 3px;
+      font: inherit; font-size: 13px; color: var(--ink);
+      background: #fff; outline: none;
+    }
+    .field input[type="text"]:focus { border-color: var(--primary); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* logo upload */
+    .logo-drop {
+      border: 1.5px dashed var(--border);
+      border-radius: 4px;
+      padding: 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      background: #fafaf7;
+    }
+    .logo-drop:hover { border-color: var(--primary); background: #fff; }
+    .logo-drop .ic {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--structure); margin: 0 auto 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary);
+    }
+    .logo-drop .t { font-size: 13px; font-weight: 500; color: var(--primary); margin-bottom: 3px; }
+    .logo-drop .s { font-size: 11px; color: var(--text-muted); }
+    .logo-drop input { display: none; }
+    .logo-preview {
+      display: none; align-items: center; gap: 14px;
+      padding: 12px; background: #fafaf7; border-radius: 4px;
+    }
+    .logo-preview.show { display: flex; }
+    .logo-preview .ph {
+      width: 56px; height: 56px; border-radius: 4px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .logo-preview .ph img { max-width: 100%; max-height: 100%; }
+    .logo-preview .info { flex: 1; }
+    .logo-preview .info b { display: block; font-size: 13px; color: var(--primary); margin-bottom: 2px; }
+    .logo-preview .info span { font-size: 11px; color: var(--text-muted); }
+    .logo-preview button {
+      background: none; border: none; cursor: pointer;
+      font-size: 12px; color: var(--text-muted); padding: 4px 8px;
+    }
+    .logo-preview button:hover { color: var(--spark); }
+
+    /* palette presets */
+    .presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .preset {
+      cursor: pointer;
+      border: 1.5px solid var(--border); border-radius: 4px;
+      padding: 12px; background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .preset:hover { border-color: #c9c9c9; }
+    .preset.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 12%, transparent);
+    }
+    .preset .swatches {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 2px; margin-bottom: 8px;
+      border-radius: 2px; overflow: hidden;
+    }
+    .preset .swatches i { display: block; height: 22px; }
+    .preset .name { font-size: 13px; font-weight: 500; color: var(--primary); }
+    .preset .arch { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* color pickers */
+    .picker-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pickrow {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--border); border-radius: 3px;
+      background: #fff;
+    }
+    .pickrow .info { flex: 1; min-width: 0; }
+    .pickrow .info b { display: block; font-size: 11px; color: var(--primary); font-weight: 500; }
+    .pickrow .info span { font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .pickrow input[type="color"] {
+      width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 3px;
+      background: none; padding: 2px; cursor: pointer;
+    }
+
+    /* pattern grid */
+    .patgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .pat {
+      aspect-ratio: 1; cursor: pointer;
+      border: 1.5px solid var(--border); border-radius: 3px;
+      background-color: var(--primary);
+      position: relative; overflow: hidden;
+    }
+    .pat:hover { border-color: #c9c9c9; }
+    .pat.active { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 14%, transparent); }
+    .pat .layer { position:absolute; inset:0; }
+    .pat .lbl {
+      position: absolute; bottom: 2px; left: 2px;
+      font-size: 8.5px; font-weight: 500;
+      background: rgba(255,255,255,0.85); color: var(--primary);
+      padding: 1px 4px; border-radius: 2px;
+    }
+    /* pattern variants — these mirror the actual product CSS */
+    .p-none .layer { background: none; }
+    .p-dots .layer { background-image: radial-gradient(color-mix(in srgb, var(--accent-dynamic) 60%, transparent) 1.1px, transparent 1.4px); background-size: 9px 9px; }
+    .p-grid .layer { background-image:
+        linear-gradient(color-mix(in srgb, var(--accent-dynamic) 26%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--accent-dynamic) 26%, transparent) 1px, transparent 1px);
+      background-size: 10px 10px; }
+    .p-stripes .layer { background-image: repeating-linear-gradient(60deg, color-mix(in srgb, var(--accent-dynamic) 34%, transparent) 0 3px, transparent 3px 8px); }
+    .p-marks .layer {
+      background-color: color-mix(in srgb, var(--accent-dynamic) 42%, transparent);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+              mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+      -webkit-mask-size: 14px; mask-size: 14px;
+      -webkit-mask-repeat: repeat; mask-repeat: repeat;
+    }
+    .p-diamond-grid .layer {
+      background-color: color-mix(in srgb, var(--accent-dynamic) 40%, transparent);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M23 2 44 23 23 44 2 23 23 2Z' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+              mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M23 2 44 23 23 44 2 23 23 2Z' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+      -webkit-mask-size: 14px; mask-size: 14px;
+      -webkit-mask-repeat: repeat; mask-repeat: repeat;
+    }
+    .p-mesh .layer {
+      background-image:
+        radial-gradient(65% 85% at 0% 0%,   color-mix(in srgb, var(--accent-dynamic) 48%, transparent), transparent 70%),
+        radial-gradient(75% 95% at 100% 100%, color-mix(in srgb, var(--accent-dynamic) 34%, transparent), transparent 72%);
+    }
+    .p-glow .layer {
+      background-image: radial-gradient(130% 95% at 18% 100%,
+        color-mix(in srgb, var(--accent-dynamic) 62%, transparent), transparent 62%);
+    }
+
+    /* contrast checker */
+    .contrast {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    }
+    .crow {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 11px; border: 1px solid var(--border); border-radius: 3px;
+      background: #fff; gap: 8px;
+    }
+    .crow .lbl {
+      font-size: 10.5px; color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.06em; font-weight: 500;
+    }
+    .crow .ratio { font-size: 11.5px; color: var(--primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .grade {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+      padding: 2px 6px; border-radius: 2px;
+      color: #fff;
+    }
+    .grade-AAA { background: #083344; }
+    .grade-AA  { background: #2C3E45; }
+    .grade-FAIL { background: #B91C1C; }
+
+    /* action footer */
+    .actions {
+      display: flex; align-items: center; gap: 10px;
+      padding-top: 8px;
+    }
+    .actions .save {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 4px;
+      font: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer;
+    }
+    .actions .save:hover { filter: brightness(1.08); }
+    .actions .save:disabled { background: #b3b3b3; cursor: not-allowed; }
+    .actions .secondary {
+      padding: 12px 14px;
+      background: #fff; color: var(--primary);
+      border: 1px solid var(--border); border-radius: 4px;
+      font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .actions .secondary:hover { border-color: var(--primary); }
+
+    /* ---------- preview column (right) ---------- */
+    .preview-wrap { position: sticky; top: 80px; }
+    .preview-tabs {
+      display: flex; gap: 4px; margin-bottom: 12px;
+    }
+    .ptab {
+      padding: 8px 14px; font-size: 12.5px; font-weight: 500;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 3px; cursor: pointer; color: var(--text-muted);
+    }
+    .ptab.active {
+      background: var(--primary); color: #fff;
+      border-color: var(--primary);
+    }
+    .preview-frame {
+      border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 12px 36px -16px rgba(0,0,0,0.18);
+    }
+    .preview-frame .chrome {
+      height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 14px;
+      background: #f7f7f5; border-bottom: 1px solid var(--border);
+    }
+    .preview-frame .chrome i {
+      width: 9px; height: 9px; border-radius: 50%; background: #d8d4ce;
+    }
+    .preview-frame .stage {
+      height: 580px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--canvas-pv);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* preview: sign-in mini */
+    .pv-signin {
+      display: grid; grid-template-columns: 1fr 320px;
+      gap: 32px;
+      padding: 32px;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg,
+        var(--canvas-pv) 0%,
+        var(--structure-pv) 45%,
+        color-mix(in srgb, var(--structure-pv) 70%, var(--lift-pv)) 100%);
+      align-items: center;
+    }
+    .pv-signin .hero {
+      font-size: 32px; font-weight: 500; line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--primary-pv);
+    }
+    .pv-signin .hero .dim { color: var(--muted-pv); }
+    .pv-signin .hero-eb {
+      font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted-pv); margin-bottom: 14px; font-weight: 500;
+    }
+    .pv-signin .card-pv {
+      background: #fff; border-radius: 14px;
+      padding: 22px 24px; box-shadow: 0 20px 40px -16px rgba(0,0,0,0.18);
+    }
+    .pv-signin .card-pv .logo-row { text-align: center; margin-bottom: 4px; }
+    .pv-signin .card-pv .logo-row .diam {
+      width: 18px; height: 18px; background: var(--primary-pv);
+      transform: rotate(45deg); display: inline-block; vertical-align: middle;
+      margin-right: 6px;
+    }
+    .pv-signin .card-pv .logo-row b {
+      font-size: 18px; font-weight: 600; color: var(--primary-pv);
+      vertical-align: middle;
+    }
+    .pv-signin .card-pv .lbl {
+      text-align: center; font-size: 9px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--muted-pv);
+      margin-bottom: 18px; font-weight: 500;
+    }
+    .pv-signin .card-pv h4 {
+      text-align: center; font-size: 16px; font-weight: 600;
+      color: var(--primary-pv); margin-bottom: 4px;
+    }
+    .pv-signin .card-pv .lead-pv {
+      text-align: center; font-size: 11px; color: var(--muted-pv);
+      margin-bottom: 16px;
+    }
+    .pv-signin .card-pv .input-pv {
+      height: 32px; border: 1px solid var(--structure-border-pv);
+      border-radius: 6px; margin-bottom: 8px;
+    }
+    .pv-signin .card-pv .btn-pv {
+      width: 100%; padding: 9px;
+      background: var(--primary-pv); color: #fff;
+      text-align: center; font-size: 12px; font-weight: 600;
+      border-radius: 6px; margin-top: 8px;
+    }
+
+    /* preview: app mini */
+    .pv-app {
+      display: grid; grid-template-columns: 180px 1fr;
+      width: 100%; height: 100%;
+      background: var(--canvas-pv);
+    }
+    .pv-app .sidebar {
+      background: var(--primary-pv);
+      color: var(--canvas-pv);
+      padding: 16px 12px;
+      display: flex; flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pv-app .sidebar .brand {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 600; font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .pv-app .sidebar .brand .mk {
+      width: 22px; height: 22px; border-radius: 5px;
+      background: var(--spark-pv);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 12px; font-weight: 700;
+    }
+    .pv-app .sidebar .navi {
+      font-size: 11.5px; padding: 7px 9px; border-radius: 5px;
+      color: color-mix(in srgb, var(--canvas-pv) 70%, transparent);
+    }
+    .pv-app .sidebar .navi.act {
+      background: color-mix(in srgb, var(--spark-pv) 22%, transparent);
+      color: #fff; font-weight: 500;
+    }
+    /* pattern background in sidebar spacer */
+    .pv-app .sidebar .pattern-bg {
+      position: absolute; left:0; right:0; bottom: 40px; top: 220px;
+      pointer-events: none; opacity: .55;
+      -webkit-mask-image: linear-gradient(transparent 0%, #000 22%, #000 80%, transparent 100%);
+      mask-image: linear-gradient(transparent 0%, #000 22%, #000 80%, transparent 100%);
+    }
+    /* pattern bg variants — match app patterns */
+    .pv-app .sidebar.pat-marks .pattern-bg {
+      background-color: color-mix(in srgb, var(--spark-pv) 42%, transparent);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+              mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+      -webkit-mask-size: 16px; mask-size: 16px;
+      -webkit-mask-repeat: repeat;
+    }
+    .pv-app .sidebar.pat-diamond-grid .pattern-bg {
+      background-color: color-mix(in srgb, var(--spark-pv) 40%, transparent);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M23 2 44 23 23 44 2 23 23 2Z' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+              mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M23 2 44 23 23 44 2 23 23 2Z' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+      -webkit-mask-size: 16px; mask-size: 16px;
+      -webkit-mask-repeat: repeat;
+    }
+    .pv-app .sidebar.pat-dots .pattern-bg {
+      background-image: radial-gradient(color-mix(in srgb, var(--spark-pv) 60%, transparent) 1px, transparent 1.4px);
+      background-size: 9px 9px;
+    }
+    .pv-app .sidebar.pat-grid .pattern-bg {
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--spark-pv) 26%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--spark-pv) 26%, transparent) 1px, transparent 1px);
+      background-size: 10px 10px;
+    }
+    .pv-app .sidebar.pat-stripes .pattern-bg {
+      background-image: repeating-linear-gradient(60deg, color-mix(in srgb, var(--spark-pv) 34%, transparent) 0 3px, transparent 3px 8px);
+    }
+    .pv-app .sidebar.pat-mesh .pattern-bg {
+      background-image:
+        radial-gradient(65% 85% at 0% 0%,   color-mix(in srgb, var(--spark-pv) 48%, transparent), transparent 70%),
+        radial-gradient(75% 95% at 100% 100%, color-mix(in srgb, var(--spark-pv) 34%, transparent), transparent 72%);
+    }
+    .pv-app .sidebar.pat-glow .pattern-bg {
+      background-image: radial-gradient(130% 95% at 18% 100%, color-mix(in srgb, var(--spark-pv) 62%, transparent), transparent 62%);
+    }
+
+    .pv-app .main { padding: 16px 18px; overflow: hidden; }
+    .pv-app .main h5 { font-size: 17px; font-weight: 600; color: var(--primary-pv); margin-bottom: 12px; }
+    .pv-app .main .toolbar {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .pv-app .main .toolbar .search {
+      flex: 1; height: 30px;
+      border: 1px solid var(--structure-border-pv); border-radius: 6px;
+      background: #fff;
+    }
+    .pv-app .main .toolbar .cta {
+      padding: 0 12px; height: 30px;
+      background: var(--spark-pv); color: #fff;
+      border-radius: 6px; font-size: 11px; font-weight: 600;
+      display: flex; align-items: center;
+      white-space: nowrap;
+    }
+    .pv-app .main .row-pv {
+      display: grid; grid-template-columns: 30px 1fr 1fr 1fr;
+      align-items: center; padding: 9px 0; gap: 10px;
+      border-bottom: 1px solid var(--structure-pv);
+      font-size: 11px; color: var(--primary-pv);
+    }
+    .pv-app .main .row-pv .av { width: 22px; height: 22px; border-radius: 50%; }
+    .pv-app .main .row-pv .nm { font-weight: 600; }
+    .pv-app .main .row-pv .av-1 { background:#fde0a6; } .pv-app .main .row-pv .av-2 { background:#fbe3a3; }
+    .pv-app .main .row-pv .av-3 { background:#b9c4f5; } .pv-app .main .row-pv .av-4 { background:#a7e3ee; }
+    .pv-app .main .row-pv .av-5 { background:#c9b8f3; } .pv-app .main .row-pv .av-6 { background:#f7b8c4; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="left">
+      <span class="logo-mark"><span></span></span>
+      <div>
+        <div class="word">Vantage</div>
+        <div class="sub">Brand Setup · White-Label Admin</div>
+      </div>
+    </div>
+    <div class="right">
+      <span class="badge-chip"><i></i> Anchor · #083344</span>
+      <span class="sub">Tenant · lighthouse-canton</span>
+    </div>
+  </header>
+
+  <!-- ============ PAGE ============ -->
+  <main class="page">
+    <div class="heading-block">
+      <div class="eyebrow">01 · Brand Configuration</div>
+      <h1 class="h1">Set up your <span class="dim">brand identity.</span></h1>
+      <p class="lead">Upload your logo, choose a starter palette (or fine-tune your own), pick a branding pattern, and verify accessibility. Changes preview in real time — publish when you're happy.</p>
+    </div>
+
+    <!-- LEFT: form -->
+    <section class="form">
+      <!-- Tenant Identity -->
+      <div class="card">
+        <h3>Tenant Identity</h3>
+        <p class="helper">Your subdomain and display name. These appear in the URL and product UI.</p>
+        <div class="row2">
+          <div class="field">
+            <label>Display Name</label>
+            <input type="text" id="tenantName" value="Lighthouse Canton" />
+          </div>
+          <div class="field">
+            <label>Subdomain</label>
+            <input type="text" id="tenantSlug" value="lighthouse" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Logo upload -->
+      <div class="card">
+        <h3>Logo</h3>
+        <p class="helper">SVG preferred. Falls back to text wordmark using your Display Name if no logo is uploaded.</p>
+        <label class="logo-drop" id="logoDrop">
+          <div class="ic">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5-5 5 5M12 5v12"/></svg>
+          </div>
+          <div class="t">Upload logo</div>
+          <div class="s">SVG, PNG (recommended ≥ 256px). Max 1 MB.</div>
+          <input type="file" id="logoFile" accept=".svg,.png,.jpg" />
+        </label>
+        <div class="logo-preview" id="logoPreview">
+          <div class="ph"><img id="logoImg" alt="" /></div>
+          <div class="info">
+            <b id="logoFileName">—</b>
+            <span id="logoFileSize">—</span>
+          </div>
+          <button id="logoRemove">Remove</button>
+        </div>
+      </div>
+
+      <!-- Palette -->
+      <div class="card">
+        <h3>Palette</h3>
+        <p class="helper">Start from one of four production-tested palettes, then fine-tune. All palettes share the deep teal anchor.</p>
+        <div class="presets" id="presets"></div>
+        <div class="picker-list" id="pickers"></div>
+      </div>
+
+      <!-- Pattern -->
+      <div class="card">
+        <h3>Sidebar Pattern</h3>
+        <p class="helper">A subtle branding texture in the sidebar background. Tinted with your accent color.</p>
+        <div class="patgrid" id="patgrid"></div>
+      </div>
+
+      <!-- Contrast checker -->
+      <div class="card">
+        <h3>Accessibility Check</h3>
+        <p class="helper">Live WCAG 2.1 contrast ratios for critical text pairings. AA-pass required to publish.</p>
+        <div class="contrast" id="contrast"></div>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="copyCss">Copy CSS variables</button>
+        <button class="save" id="publish">Save &amp; publish</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: live preview -->
+    <aside class="preview-wrap">
+      <div class="preview-tabs">
+        <button class="ptab active" data-view="signin">Sign-in</button>
+        <button class="ptab" data-view="app">Product (Prospects)</button>
+      </div>
+      <div class="preview-frame">
+        <div class="chrome"><i></i><i></i><i></i></div>
+        <div class="stage" id="stage"></div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    /* ---------- palette data ---------- */
+    const PALETTES = {
+      "Meridian": { primary:"#083344", canvas:"#FAF8F2", structure:"#ECE6D6", structureBorder:"#DDD6C2", lift:"#8B6914", spark:"#C2410C", muted:"#6B6256", archetype:"Heritage Private Bank" },
+      "Atrium":   { primary:"#083344", canvas:"#FFFFFF", structure:"#F1F3F5", structureBorder:"#E2E5E8", lift:"#0E7C7B", spark:"#B5482F", muted:"#5C6770", archetype:"Modern Institutional" },
+      "Dockside": { primary:"#083344", canvas:"#F4EFE6", structure:"#DDD3BE", structureBorder:"#CCC1A8", lift:"#6B4423", spark:"#B7410E", muted:"#6B5E48", archetype:"Earthy Maritime" },
+      "Polaris":  { primary:"#083344", canvas:"#F7F8FA", structure:"#E2E8F0", structureBorder:"#CBD2DC", lift:"#1E40AF", spark:"#BE185D", muted:"#525C68", archetype:"Cool Wealth-Tech" },
+    };
+    let state = {
+      preset: "Meridian",
+      palette: {...PALETTES["Meridian"]},
+      pattern: "p-marks",
+      view: "signin",
+    };
+
+    /* ---------- WCAG contrast ---------- */
+    function relLum(hex) {
+      const c = i => { const v = parseInt(hex.slice(i,i+2),16)/255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+      return 0.2126*c(1) + 0.7152*c(3) + 0.0722*c(5);
+    }
+    function contrast(fg, bg) {
+      const l1 = relLum(fg), l2 = relLum(bg);
+      const [hi,lo] = l1>l2 ? [l1,l2] : [l2,l1];
+      return (hi+0.05)/(lo+0.05);
+    }
+    function grade(ratio) {
+      if (ratio >= 7) return "AAA";
+      if (ratio >= 4.5) return "AA";
+      return "FAIL";
+    }
+
+    /* ---------- render presets ---------- */
+    const TOKENS = [
+      {key:"primary", label:"Primary"},
+      {key:"canvas", label:"Canvas"},
+      {key:"structure", label:"Structure"},
+      {key:"lift", label:"Lift"},
+      {key:"spark", label:"Accent / Spark"},
+      {key:"muted", label:"Muted"},
+    ];
+
+    const presetsEl = document.getElementById("presets");
+    presetsEl.innerHTML = Object.entries(PALETTES).map(([name, p]) => `
+      <div class="preset" data-name="${name}">
+        <div class="swatches">
+          <i style="background:${p.canvas}"></i>
+          <i style="background:${p.structure}"></i>
+          <i style="background:${p.primary}"></i>
+          <i style="background:${p.lift}"></i>
+          <i style="background:${p.spark}"></i>
+        </div>
+        <div class="name">${name}</div>
+        <div class="arch">${p.archetype}</div>
+      </div>`).join("");
+
+    document.querySelectorAll(".preset").forEach(el => el.onclick = () => {
+      state.preset = el.dataset.name;
+      state.palette = {...PALETTES[el.dataset.name]};
+      apply();
+    });
+
+    /* ---------- color pickers ---------- */
+    const pickersEl = document.getElementById("pickers");
+    pickersEl.innerHTML = TOKENS.map(t => `
+      <div class="pickrow">
+        <input type="color" data-key="${t.key}" />
+        <div class="info">
+          <b>${t.label}</b>
+          <span data-hex="${t.key}">#000000</span>
+        </div>
+      </div>`).join("");
+    document.querySelectorAll('input[type="color"]').forEach(inp => {
+      inp.oninput = e => {
+        const k = e.target.dataset.key, v = e.target.value;
+        state.palette[k] = v;
+        apply();
+      };
+    });
+
+    /* ---------- patterns ---------- */
+    const PATTERNS = [
+      {cls:"p-none", label:"None"},
+      {cls:"p-marks", label:"Marks"},
+      {cls:"p-diamond-grid", label:"Diamond"},
+      {cls:"p-dots", label:"Dots"},
+      {cls:"p-grid", label:"Grid"},
+      {cls:"p-stripes", label:"Stripes"},
+      {cls:"p-mesh", label:"Mesh"},
+      {cls:"p-glow", label:"Glow"},
+    ];
+    document.getElementById("patgrid").innerHTML = PATTERNS.map(p => `
+      <div class="pat ${p.cls}" data-cls="${p.cls}" title="${p.label}">
+        <div class="layer"></div>
+        <span class="lbl">${p.label}</span>
+      </div>`).join("");
+    document.querySelectorAll(".pat").forEach(el => el.onclick = () => {
+      state.pattern = el.dataset.cls;
+      apply();
+    });
+
+    /* ---------- preview tabs ---------- */
+    document.querySelectorAll(".ptab").forEach(b => b.onclick = () => {
+      document.querySelectorAll(".ptab").forEach(x => x.classList.toggle("active", x === b));
+      state.view = b.dataset.view;
+      renderPreview();
+    });
+
+    /* ---------- logo upload ---------- */
+    const drop = document.getElementById("logoDrop");
+    const inp = document.getElementById("logoFile");
+    const pv = document.getElementById("logoPreview");
+    const img = document.getElementById("logoImg");
+    let uploadedLogo = null;
+    inp.onchange = e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        uploadedLogo = ev.target.result;
+        img.src = uploadedLogo;
+        document.getElementById("logoFileName").textContent = f.name;
+        document.getElementById("logoFileSize").textContent = (f.size / 1024).toFixed(1) + " KB · " + (f.type || "image");
+        pv.classList.add("show");
+        drop.style.display = "none";
+        renderPreview();
+      };
+      reader.readAsDataURL(f);
+    };
+    document.getElementById("logoRemove").onclick = () => {
+      uploadedLogo = null; img.src = "";
+      pv.classList.remove("show");
+      drop.style.display = "";
+      inp.value = "";
+      renderPreview();
+    };
+
+    /* ---------- apply state ---------- */
+    function apply() {
+      // Update root vars so the page itself reflects the palette in subtle ways
+      const r = document.documentElement.style;
+      r.setProperty("--primary", state.palette.primary);
+      r.setProperty("--canvas", state.palette.canvas);
+      r.setProperty("--structure", state.palette.structure);
+      r.setProperty("--structure-border", state.palette.structureBorder);
+      r.setProperty("--lift", state.palette.lift);
+      r.setProperty("--spark", state.palette.spark);
+      r.setProperty("--muted", state.palette.muted);
+      r.setProperty("--accent-dynamic", state.palette.spark);
+
+      // Active preset visual
+      document.querySelectorAll(".preset").forEach(p => p.classList.toggle("active", p.dataset.name === state.preset));
+      document.querySelectorAll(".pat").forEach(p => p.classList.toggle("active", p.dataset.cls === state.pattern));
+
+      // Hex labels and color inputs
+      TOKENS.forEach(t => {
+        const v = state.palette[t.key];
+        const hexEl = document.querySelector(`[data-hex="${t.key}"]`);
+        if (hexEl) hexEl.textContent = v.toUpperCase();
+        const inp = document.querySelector(`input[type="color"][data-key="${t.key}"]`);
+        if (inp) inp.value = v;
+      });
+
+      renderContrast();
+      renderPreview();
+    }
+
+    /* ---------- contrast rendering ---------- */
+    const PAIRS = [
+      {fg: "primary",   bg: "canvas",   label: "Text on Canvas"},
+      {fg: "primary",   bg: "structure", label: "Text on Structure"},
+      {fg: "#FFFFFF",   bg: "primary",  label: "On Primary"},
+      {fg: "#FFFFFF",   bg: "spark",    label: "On Accent (Spark)"},
+      {fg: "lift",      bg: "canvas",   label: "Lift on Canvas"},
+      {fg: "muted",     bg: "canvas",   label: "Muted on Canvas"},
+    ];
+    let anyFail = false;
+    function renderContrast() {
+      anyFail = false;
+      document.getElementById("contrast").innerHTML = PAIRS.map(p => {
+        const fg = p.fg.startsWith("#") ? p.fg : state.palette[p.fg];
+        const bg = p.bg.startsWith("#") ? p.bg : state.palette[p.bg];
+        const r = contrast(fg, bg);
+        const g = grade(r);
+        if (g === "FAIL") anyFail = true;
+        return `<div class="crow">
+          <div>
+            <div class="lbl">${p.label}</div>
+            <div class="ratio">${r.toFixed(2)}:1</div>
+          </div>
+          <span class="grade grade-${g}">${g}</span>
+        </div>`;
+      }).join("");
+      const pub = document.getElementById("publish");
+      pub.disabled = anyFail;
+      pub.textContent = anyFail ? "Save & publish (failing AA)" : "Save & publish";
+    }
+
+    /* ---------- preview rendering ---------- */
+    const stage = document.getElementById("stage");
+    function previewVars() {
+      return `--primary-pv:${state.palette.primary}; --canvas-pv:${state.palette.canvas};
+              --structure-pv:${state.palette.structure}; --structure-border-pv:${state.palette.structureBorder};
+              --lift-pv:${state.palette.lift}; --spark-pv:${state.palette.spark};
+              --muted-pv:${state.palette.muted};`;
+    }
+    function renderPreview() {
+      stage.setAttribute("style", previewVars());
+      if (state.view === "signin") {
+        stage.innerHTML = `
+          <div class="pv-signin">
+            <div>
+              <div class="hero-eb">AI-Native Operations</div>
+              <div class="hero">
+                Every signal.<br/>
+                Every relationship.<br/>
+                <span class="dim">One Vantage.</span>
+              </div>
+            </div>
+            <div class="card-pv">
+              <div class="logo-row">
+                ${ uploadedLogo
+                  ? `<img src="${uploadedLogo}" style="max-height:30px;max-width:170px;display:block;margin:0 auto" />`
+                  : `<span class="diam"></span><b>${(document.getElementById("tenantName")||{}).value || "Vantage"}</b>` }
+              </div>
+              <div class="lbl">Operational Intelligence</div>
+              <h4>Welcome back</h4>
+              <div class="lead-pv">Sign in to continue</div>
+              <div class="input-pv"></div>
+              <div class="input-pv"></div>
+              <div class="btn-pv">Sign in</div>
+            </div>
+          </div>`;
+      } else {
+        stage.innerHTML = `
+          <div class="pv-app">
+            <div class="sidebar pat-${state.pattern.replace('p-','')}">
+              <div class="brand">
+                ${ uploadedLogo
+                  ? `<img src="${uploadedLogo}" style="max-height:22px;max-width:140px" />`
+                  : `<span class="mk">${((document.getElementById("tenantName")||{}).value||"V").slice(0,1).toUpperCase()}</span>
+                     <span>${(document.getElementById("tenantName")||{}).value || "Vantage"}</span>` }
+              </div>
+              <div class="navi act">Dashboard</div>
+              <div class="navi">Buzz</div>
+              <div class="navi">Prospects</div>
+              <div class="navi">Clients</div>
+              <div class="navi" style="opacity:.4;margin-top:8px;font-size:9px;letter-spacing:.12em;text-transform:uppercase">Workflows</div>
+              <div class="navi">Onboarding</div>
+              <div class="navi">Periodic Review</div>
+              <div class="navi">Servicing</div>
+              <div class="pattern-bg"></div>
+            </div>
+            <div class="main">
+              <h5>Prospects</h5>
+              <div class="toolbar">
+                <div class="search"></div>
+                <div class="cta">+ Add New</div>
+              </div>
+              <div class="row-pv"><div class="av av-1"></div><div><div class="nm">Rebecaa Geller</div></div><div>Advisory</div><div>23.46M</div></div>
+              <div class="row-pv"><div class="av av-2"></div><div><div class="nm">Sophia Williams</div></div><div>Discretionary</div><div>21M</div></div>
+              <div class="row-pv"><div class="av av-3"></div><div><div class="nm">Arthur Taylor</div></div><div>Family Office</div><div>23.46M</div></div>
+              <div class="row-pv"><div class="av av-4"></div><div><div class="nm">Emma Wright</div></div><div>Advisory</div><div>3.46M</div></div>
+              <div class="row-pv"><div class="av av-5"></div><div><div class="nm">Matthew Johnson</div></div><div>Family Office</div><div>123M</div></div>
+              <div class="row-pv"><div class="av av-6"></div><div><div class="nm">Sofia Martinez</div></div><div>Discretionary</div><div>30.12M</div></div>
+            </div>
+          </div>`;
+      }
+    }
+
+    /* ---------- actions ---------- */
+    document.getElementById("copyCss").onclick = () => {
+      const lines = [":root {"];
+      Object.entries(state.palette).forEach(([k,v]) => {
+        if (k !== "archetype") lines.push(`  --${k.replace(/[A-Z]/g, m=>"-"+m.toLowerCase())}: ${v};`);
+      });
+      lines.push(`  --pattern: ${state.pattern};`);
+      lines.push("}");
+      navigator.clipboard.writeText(lines.join("\n"));
+      const b = document.getElementById("copyCss"); const t = b.textContent;
+      b.textContent = "Copied ✓"; setTimeout(() => b.textContent = t, 1400);
+    };
+    document.getElementById("publish").onclick = () => {
+      const b = document.getElementById("publish"); const t = b.textContent;
+      b.textContent = "Published ✓ Live in 30 seconds";
+      setTimeout(() => b.textContent = t, 2400);
+    };
+    // re-render preview when tenant name changes
+    document.getElementById("tenantName").oninput = renderPreview;
+
+    apply();
+  </script>
+</body>
+</html>

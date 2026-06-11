@@ -561,52 +561,49 @@
       { key:"--border",            label:"Borders & dividers" },
     ];
 
-    const PRESETS = {
-      "Light": {
-        swatch: "#ffffff",
-        vars: {
-          "--sidebar-bg":"#0d1117","--sidebar-text":"#e8eaed","--sidebar-text-muted":"#8b929c",
-          "--sidebar-section":"#6b7280","--sidebar-active-bg":"#2a2f3a","--sidebar-active-text":"#ffffff",
-          "--sidebar-border":"rgba(255,255,255,0.06)",
-          "--app-bg":"#ffffff","--surface":"#ffffff","--text":"#1a1d21","--text-muted":"#6b7280",
-          "--text-faint":"#9aa0a8","--border":"#ececec","--row-border":"#f2f2f2","--row-hover":"#faf9f8",
-          "--input-bg":"#ffffff","--input-border":"#e6e6e6","--input-text":"#1a1d21",
-          "--accent":"#f26b3a","--accent-text":"#ffffff","--accent-weak":"rgba(242,107,58,0.12)",
-          "--icon":"#6b7280","--badge-border":"#d6d6d6","--badge-text":"#5a5f66"
-        }
-      },
-      "Dark Navy": {
-        swatch: "#0c2a3c",
-        vars: {
-          "--sidebar-bg":"#071824","--sidebar-text":"#dbe7ef","--sidebar-text-muted":"#7d97a8",
-          "--sidebar-section":"#5d7689","--sidebar-active-bg":"#123244","--sidebar-active-text":"#ffffff",
-          "--sidebar-border":"rgba(255,255,255,0.07)",
-          "--app-bg":"#0b2a3b","--surface":"transparent","--text":"#e9f1f6","--text-muted":"#9fb6c4",
-          "--text-faint":"#6f8b9b","--border":"rgba(255,255,255,0.09)","--row-border":"rgba(255,255,255,0.07)",
-          "--row-hover":"rgba(255,255,255,0.04)",
-          "--input-bg":"rgba(255,255,255,0.03)","--input-border":"rgba(255,255,255,0.12)","--input-text":"#e9f1f6",
-          "--accent":"#ffffff","--accent-text":"#0c2a3c","--accent-weak":"rgba(255,255,255,0.14)",
-          "--icon":"#9fb6c4","--badge-border":"rgba(255,255,255,0.25)","--badge-text":"#c4d6e0"
-        }
-      },
-      "Dark Charcoal": {
-        swatch: "#0d0d0f",
-        vars: {
-          "--sidebar-bg":"#0a0a0b","--sidebar-text":"#e8e8ea","--sidebar-text-muted":"#86868c",
-          "--sidebar-section":"#67676d","--sidebar-active-bg":"#26120a","--sidebar-active-text":"#ffffff",
-          "--sidebar-border":"rgba(255,255,255,0.06)",
-          "--app-bg":"#0d0d0f","--surface":"transparent","--text":"#f0f0f2","--text-muted":"#8a8a90",
-          "--text-faint":"#6a6a70","--border":"rgba(255,255,255,0.08)","--row-border":"rgba(255,255,255,0.06)",
-          "--row-hover":"rgba(255,255,255,0.03)",
-          "--input-bg":"rgba(255,255,255,0.03)","--input-border":"rgba(255,255,255,0.12)","--input-text":"#f0f0f2",
-          "--accent":"#f26b3a","--accent-text":"#ffffff","--accent-weak":"rgba(242,107,58,0.16)",
-          "--icon":"#8a8a90","--badge-border":"rgba(255,255,255,0.22)","--badge-text":"#c2c2c8"
-        }
-      }
+    /* Vantage Brand Palettes — all anchored on primary #083344 (deep teal).
+       Each palette's tokens are mapped onto the Theme Lab CSS variables. */
+    const PALETTES = {
+      "Meridian": { primary:"#083344", canvas:"#FAF8F2", structure:"#ECE6D6", structureBorder:"#DDD6C2", lift:"#8B6914", spark:"#C2410C", muted:"#6B6256", archetype:"Heritage Private Bank" },
+      "Atrium":   { primary:"#083344", canvas:"#FFFFFF", structure:"#F1F3F5", structureBorder:"#E2E5E8", lift:"#0E7C7B", spark:"#B5482F", muted:"#5C6770", archetype:"Modern Institutional" },
+      "Dockside": { primary:"#083344", canvas:"#F4EFE6", structure:"#DDD3BE", structureBorder:"#CCC1A8", lift:"#6B4423", spark:"#B7410E", muted:"#6B5E48", archetype:"Earthy Maritime" },
+      "Polaris":  { primary:"#083344", canvas:"#F7F8FA", structure:"#E2E8F0", structureBorder:"#CBD2DC", lift:"#1E40AF", spark:"#BE185D", muted:"#525C68", archetype:"Cool Wealth-Tech" },
     };
+    function paletteVars(p) {
+      const mix = (a, pct, b) => `color-mix(in srgb, ${a} ${pct}%, ${b})`;
+      return {
+        "--sidebar-bg": p.primary,
+        "--sidebar-text": p.canvas,
+        "--sidebar-text-muted": mix(p.canvas, 60, "transparent"),
+        "--sidebar-section": mix(p.canvas, 45, "transparent"),
+        "--sidebar-active-bg": mix(p.spark, 22, "transparent"),
+        "--sidebar-active-text": "#ffffff",
+        "--sidebar-border": mix(p.canvas, 10, "transparent"),
+        "--app-bg": p.canvas,
+        "--surface": "#ffffff",
+        "--text": p.primary,
+        "--text-muted": p.muted,
+        "--text-faint": mix(p.muted, 70, "transparent"),
+        "--border": p.structureBorder,
+        "--row-border": p.structure,
+        "--row-hover": mix(p.structure, 50, "transparent"),
+        "--input-bg": "#ffffff",
+        "--input-border": p.structureBorder,
+        "--input-text": p.primary,
+        "--accent": p.spark,
+        "--accent-text": "#ffffff",
+        "--accent-weak": mix(p.spark, 15, "transparent"),
+        "--icon": p.muted,
+        "--badge-border": p.structureBorder,
+        "--badge-text": p.muted,
+      };
+    }
+    const PRESETS = Object.fromEntries(
+      Object.entries(PALETTES).map(([name, p]) => [name, { swatch: p.spark, vars: paletteVars(p) }])
+    );
 
     const root = document.documentElement;
-    let activePreset = "Light";
+    let activePreset = "Meridian";
 
     function applyVars(vars) {
       Object.entries(vars).forEach(([k,v]) => root.style.setProperty(k, v));
@@ -706,7 +703,7 @@
     document.getElementById("reset").onclick = () => applyPreset(activePreset);
     document.getElementById("export").onclick = () => {
       const lines = [":root {"];
-      Object.keys(PRESETS["Light"].vars).forEach(k => lines.push(`  ${k}: ${currentVal(k)};`));
+      Object.keys(PRESETS["Meridian"].vars).forEach(k => lines.push(`  ${k}: ${currentVal(k)};`));
       lines.push("}");
       navigator.clipboard.writeText(lines.join("\n"));
       const b = document.getElementById("export"); const t=b.textContent;
@@ -715,7 +712,9 @@
 
     document.getElementById("labToggle").onclick = () => document.getElementById("lab").classList.toggle("open");
 
-    applyPreset("Light");
+    /* Allow ?palette=Meridian|Atrium|Dockside|Polaris in the URL for deep-linking */
+    const urlPalette = new URLSearchParams(window.location.search).get("palette");
+    applyPreset(PRESETS[urlPalette] ? urlPalette : "Meridian");
   </script>
 </body>
 </html>
