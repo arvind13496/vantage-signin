@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vantage — White-Label Foundation System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: #F7F8FA; color: #0B1520; -webkit-font-smoothing: antialiased; }
+  ::selection { background: #0B1520; color: #fff; }
+  button { font-family: inherit; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ===========================================================================
+   Vantage White-Label Foundation System
+   Ported from "Vantage White-Label Foundations.dc.html" (DCLogic -> vanilla JS)
+   The 90/10 model: Foundation (Vantage-owned neutrals + semantics) +
+   Brand slot (client primary/secondary/accent). All contrast computed live.
+   =========================================================================== */
+
+const WHITE = '#FFFFFF';
+const DARK  = '#0B1117';
+
+const hexToRgb = hex => { const h = hex.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; };
+const relLum = hex => { const [r,g,b] = hexToRgb(hex).map(v => { const c = v/255; return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }); return 0.2126*r + 0.7152*g + 0.0722*b; };
+const contrast = (fg,bg) => { const l1 = relLum(fg), l2 = relLum(bg); const [hi,lo] = l1>l2 ? [l1,l2] : [l2,l1]; return (hi+0.05)/(lo+0.05); };
+const fmt = r => r.toFixed(2);
+const onColor = bg => contrast(WHITE,bg) >= contrast(DARK,bg) ? WHITE : DARK;
+const onName  = bg => onColor(bg) === WHITE ? 'white' : 'ink';
+const rgba = (hex,a) => { const [r,g,b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; };
+function grade(r){
+  if (r>=7.0) return { label:'AAA',  bg:'#0B1520', fg:'#fff', color:'#0B7A3B' };
+  if (r>=4.5) return { label:'AA',   bg:'#3A4A5A', fg:'#fff', color:'#3A4A5A' };
+  if (r>=3.0) return { label:'AA L', bg:'#3A4A5A', fg:'#fff', color:'#9A6700' };
+  return       { label:'FAIL', bg:'#BE2A2A', fg:'#fff', color:'#BE2A2A' };
+}
+
+const FOUNDATIONS = [
+  { name:'Slate', reference:'Stripe-grade cool neutral', isDark:false,
+    rationale:'The default workhorse. Cool, balanced greys with crisp hairlines — neutral enough to host any client brand without color clash, confident enough to feel like modern fintech infrastructure.',
+    compositionNote:'Brand color touches only nav, CTAs and the header band. Text is always foundation Ink, so a client could load a near-white or a near-black brand and the product stays perfectly legible.',
+    canvas:'#FFFFFF', surface:'#F6F8FA', surfaceAlt:'#EDF1F6', hairline:'#E2E8F0',
+    ink:'#0B1520', inkMuted:'#5B6B7B', inkSubtle:'#94A2B0',
+    success:'#15803D', warning:'#B45309', error:'#BE2A2A' },
+  { name:'Porcelain', reference:'Mercury-style warmth', isDark:false,
+    rationale:'A warmer, softer neutral for private-client and advisory surfaces. Low-contrast warm greys reduce screen fatigue across long review sessions and read as premium rather than utilitarian.',
+    compositionNote:'Warm neutrals carry everything. Because the brand only fills 10%, even a cool or vivid client brand sits cleanly on the warm base without the two palettes fighting.',
+    canvas:'#FFFFFF', surface:'#FAF9F6', surfaceAlt:'#F2F0EA', hairline:'#E9E5DD',
+    ink:'#1A1714', inkMuted:'#6E665C', inkSubtle:'#A39C90',
+    success:'#2F7A43', warning:'#9A6700', error:'#B23A2A' },
+  { name:'Graphite', reference:'Dark-mode-first, data-dense', isDark:true,
+    rationale:'A dark foundation for trading-desk density, audit logs and after-hours monitoring. High-luminance ink and brightened semantics keep dense tabular data sharp on a near-black canvas.',
+    compositionNote:'Semantics are brightened for the dark canvas, never the brand. The brand still fills only 10%, so even a dark navy or aubergine client brand stays distinguishable against the surface.',
+    canvas:'#0D1117', surface:'#161C24', surfaceAlt:'#1E2630', hairline:'#2B3441',
+    ink:'#E8EEF4', inkMuted:'#93A1AF', inkSubtle:'#647281',
+    success:'#3FB37F', warning:'#E0A33E', error:'#F06A6A' },
+  { name:'Mist', reference:'Ramp / Linear airy light', isDark:false,
+    rationale:'Cool blue-grey with generous whitespace and feather-light hairlines. The most spacious, premium-minimal option — built for leadership analytics and reporting where breathing room signals clarity.',
+    compositionNote:'Light slate surfaces and soft hairlines keep the UI quiet so the loaded brand reads as the single point of color. Ink owns all text; the brand never has to carry legibility.',
+    canvas:'#FCFDFE', surface:'#F1F5F9', surfaceAlt:'#E4EBF2', hairline:'#DCE4EC',
+    ink:'#0F1B2D', inkMuted:'#5A6675', inkSubtle:'#8A95A3',
+    success:'#15803D', warning:'#B45309', error:'#BE2A2A' },
+];
+
+const BRANDS = [
+  { key:'vantage',    name:'Vantage',           kind:'House default', initial:'V', primary:'#0C6E8A', secondary:'#083344', accent:'#36C5A6' },
+  { key:'salesforce', name:'Salesforce',        kind:'Sample client', initial:'S', primary:'#0176D3', secondary:'#032D60', accent:'#FE9339' },
+  { key:'slack',      name:'Slack',             kind:'Sample client', initial:'S', primary:'#4A154B', secondary:'#611F69', accent:'#36C5F0' },
+  { key:'lighthouse', name:'Lighthouse Canton', kind:'Sample client', initial:'L', primary:'#1A2B4A', secondary:'#0E1C33', accent:'#C9A227' },
+];
+
+let state = { foundationIndex: 0, brandKey: 'vantage' };
+
+function fndWithDerived(f){ return { ...f, onError: onColor(f.error), onSuccess: onColor(f.success) }; }
+function loadedBrand(){
+  const b = BRANDS.find(x => x.key === state.brandKey);
+  const onSecondary = onColor(b.secondary);
+  return { ...b,
+    onPrimary: onColor(b.primary),
+    onSecondary,
+    onSecondaryMuted: onSecondary === WHITE ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.55)',
+    onAccent: onColor(b.accent) };
+}
+function neutrals(f){
+  return [
+    { label:'Canvas',      hex:f.canvas,     role:'Base · 60%' },
+    { label:'Surface',     hex:f.surface,    role:'Raised · 30%' },
+    { label:'Surface Alt', hex:f.surfaceAlt, role:'Sunken' },
+    { label:'Hairline',    hex:f.hairline,   role:'Borders' },
+    { label:'Ink',         hex:f.ink,        role:'Text' },
+    { label:'Ink Muted',   hex:f.inkMuted,   role:'Secondary text' },
+  ].map(s => ({ ...s, onLabel: onColor(s.hex) }));
+}
+function semantics(f){
+  return [
+    { label:'Success', role:'OK',  hex:f.success, on:onColor(f.success), function:'Cleared accounts, positive deltas.' },
+    { label:'Warning', role:'WRN', hex:f.warning, on:onColor(f.warning), function:'Pending KYC, soft deadlines.' },
+    { label:'Error',   role:'ERR', hex:f.error,   on:onColor(f.error),   function:'Docs missing, blocked mandates.' },
+  ];
+}
+function brandSlots(b){
+  return [
+    { label:'Primary',   role:'Primary · CTA & nav', hex:b.primary,   sample:'New Mandate' },
+    { label:'Secondary', role:'Secondary · header',  hex:b.secondary, sample:'Asia-Pacific Desk' },
+    { label:'Accent',    role:'Accent · signals',    hex:b.accent,    sample:'Live status' },
+  ].map(s => {
+    const on = onColor(s.hex); const r = contrast(on, s.hex); const g = grade(r);
+    return { ...s, on, onName:onName(s.hex), ratio:fmt(r), grade:g.label, gradeColor:g.color };
+  });
+}
+function mockRows(f, b){
+  const neutralTag = { tagBg:f.surfaceAlt, tagFg:f.inkMuted };
+  return [
+    { client:'Individual · A. Cheng',  entity:'LCPL · Singapore · MAS', service:'Discretionary', status:'Cleared',     statusColor:f.success,  tag:'Ready',   tagBg:b.primary, tagFg:onColor(b.primary) },
+    { client:'Joint · Mehta Family',   entity:'LC India · SEBI',        service:'Advisory',      status:'Awaiting KYC', statusColor:f.warning,  tag:'Review',  ...neutralTag },
+    { client:'Entity · Wendover Ltd.', entity:'LCUK · London · FCA',    service:'Family Office', status:'Docs missing', statusColor:f.error,    tag:'Blocked', ...neutralTag },
+    { client:'Trust · Aurelia Trust',  entity:'DFSA · Dubai',           service:'Discretionary', status:'In review',    statusColor:f.inkMuted, tag:'Pending', ...neutralTag },
+  ];
+}
+function buildMatrix(f, b){
+  const pairs = [
+    { layer:'Foundation', pairing:'Ink on Canvas',        fg:f.ink,      bg:f.canvas,    large:'Mandate review',  normal:'Body text and headlines on the base workspace surface.' },
+    { layer:'Foundation', pairing:'Ink on Surface',       fg:f.ink,      bg:f.surface,   large:'Sidebar & cards', normal:'Same ink on raised panels, sidebar and table rows.' },
+    { layer:'Foundation', pairing:'Ink Muted on Surface', fg:f.inkMuted, bg:f.surface,   large:'Secondary label', normal:'Captions, meta and column labels on surface.' },
+    { layer:'Foundation', pairing:'Success on Canvas',    fg:f.success,  bg:f.canvas,    large:'▲ 4.2% QoQ',      normal:'Semantic success — owned by the foundation, never brand-tinted.' },
+    { layer:'Foundation', pairing:'Error on Canvas',      fg:f.error,    bg:f.canvas,    large:'Docs missing',    normal:'Semantic error reads identically under any client brand.' },
+    { layer:'Brand', pairing:'On Brand Primary',   fg:onColor(b.primary),   bg:b.primary,   large:'New Mandate', normal:'Primary CTA and active nav — on-color auto-selected for AA.' },
+    { layer:'Brand', pairing:'On Brand Secondary', fg:onColor(b.secondary), bg:b.secondary, large:'Header band',  normal:'Top brand band and avatars — auto-safe text.' },
+    { layer:'Brand', pairing:'On Brand Accent',    fg:onColor(b.accent),    bg:b.accent,    large:'Live status', normal:'Accent fills for badges and indicators.' },
+  ];
+  return pairs.map(p => {
+    const r = contrast(p.fg, p.bg); const g = grade(r);
+    return { ...p, ratio:fmt(r), grade:g.label, badgeBg:g.bg, badgeFg:g.fg, layerColor: p.layer==='Brand' ? b.primary : '#8A98A6' };
+  });
+}
+
+function render(){
+  const idx = state.foundationIndex;
+  const f = fndWithDerived(FOUNDATIONS[idx]);
+  const loaded = loadedBrand();
+  const active = {
+    numLabel: String(idx+1).padStart(2,'0'), fnd: f,
+    neutrals: neutrals(f), semantics: semantics(f), brandSlots: brandSlots(loaded),
+    mockRows: mockRows(f, loaded), matrix: buildMatrix(f, loaded),
+  };
+  const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+
+  const foundations = FOUNDATIONS.map((fnd, i) => ({
+    fnd, numLabel:i+1,
+    cardBg: i===idx ? '#FFFFFF' : '#FCFDFE',
+    cardBorder: i===idx ? '#0B1520' : '#E5E9EF',
+    cardShadow: i===idx ? '0 2px 8px rgba(16,24,40,0.10)' : '0 1px 2px rgba(16,24,40,0.03)',
+  }));
+  const brands = BRANDS.map(br => {
+    const isActive = br.key === state.brandKey;
+    return { ...br, onPrimary:onColor(br.primary),
+      chipBg: isActive ? rgba(br.primary, 0.06) : '#FFFFFF',
+      chipBorder: isActive ? br.primary : '#E5E9EF' };
+  });
+
+  document.getElementById('app').innerHTML = `
+  <div style="min-height: 100vh; background: #F7F8FA; padding-bottom: 100px;">
+
+    <!-- TOP BAR -->
+    <div style="border-bottom: 1px solid #E5E9EF; background: rgba(255,255,255,0.85); backdrop-filter: saturate(140%) blur(8px); position: sticky; top: 0; z-index: 40;">
+      <div style="max-width: 1340px; margin: 0 auto; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 13px;">
+          <div style="width: 26px; height: 26px; background: #0B1520; border-radius: 7px; display: grid; place-items: center;">
+            <div style="width: 9px; height: 9px; border: 1.8px solid #fff; border-radius: 50%;"></div>
+          </div>
+          <div style="display: flex; flex-direction: column; line-height: 1.15;">
+            <span style="font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: #0B1520;">Vantage</span>
+            <span style="font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #8A98A6;">White-Label Foundation System</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 11px; background: #F1F4F8; border: 1px solid #E5E9EF; border-radius: 999px; font-size: 11px; color: #5B6B7B; font-weight: 500;">
+            <span style="width: 6px; height: 6px; background: ${loaded.primary}; border-radius: 50%;"></span>
+            <span>Brand loaded · ${loaded.name}</span>
+          </div>
+          <div style="font-size: 11px; color: #8A98A6; font-weight: 500;">v0.2 · Q2 '26</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div style="max-width: 1340px; margin: 0 auto; padding: 60px 32px 8px;">
+      <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 72px; align-items: end;">
+        <div>
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #8A98A6; margin-bottom: 20px;">Color System · White-Label Architecture</div>
+          <h1 style="font-weight: 600; font-size: 54px; line-height: 1.04; letter-spacing: -0.03em; color: #0B1520; margin: 0 0 20px;">A foundation that<br>borrows any brand.</h1>
+          <p style="font-size: 16px; line-height: 1.6; color: #4A5560; max-width: 54ch; margin: 0;">Vantage ships as a white-label platform. So the system is built in two layers: a <strong style="font-weight: 600; color: #0B1520;">brand-agnostic foundation</strong> Vantage owns — surfaces, ink, and semantic states — and a thin <strong style="font-weight: 600; color: #0B1520;">brand slot</strong> a client fills with their own primary, secondary, and accent. Choose a foundation below, then load a client brand to watch it absorb.</p>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E5E9EF; border-radius: 14px; padding: 22px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.05);">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #8A98A6;">The 90 / 10 split</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 9fr 1fr; gap: 6px; height: 56px; margin-bottom: 14px;">
+            <div style="display: grid; grid-template-columns: 5fr 3fr 1.6fr; gap: 3px; border-radius: 8px; overflow: hidden;">
+              <div style="background: ${f.canvas}; border: 1px solid ${f.hairline};"></div>
+              <div style="background: ${f.surface};"></div>
+              <div style="background: ${f.ink};"></div>
+            </div>
+            <div style="border-radius: 8px; overflow: hidden; display: grid; grid-template-rows: 1.4fr 1fr 1fr; gap: 3px;">
+              <div style="background: ${loaded.primary};"></div>
+              <div style="background: ${loaded.secondary};"></div>
+              <div style="background: ${loaded.accent};"></div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 500;">
+            <span style="color: #4A5560;">Foundation · 90% <span style="color: #8A98A6;">(Vantage owns)</span></span>
+            <span style="color: #4A5560;">Brand · 10% <span style="color: #8A98A6;">(client)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOUNDATION TABS -->
+    <div style="max-width: 1340px; margin: 0 auto; padding: 36px 32px 0;">
+      <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #8A98A6; margin-bottom: 14px;">Step 1 · Choose a foundation</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+        ${foundations.map((fo,i) => `
+          <button data-foundation="${i}" style="text-align: left; cursor: pointer; background: ${fo.cardBg}; border: 1.5px solid ${fo.cardBorder}; border-radius: 12px; padding: 16px; transition: border-color 0.15s, box-shadow 0.15s; box-shadow: ${fo.cardShadow};">
+            <div style="display: flex; gap: 4px; margin-bottom: 14px;">
+              <span style="width: 22px; height: 30px; border-radius: 5px; background: ${fo.fnd.canvas}; border: 1px solid ${fo.fnd.hairline};"></span>
+              <span style="width: 22px; height: 30px; border-radius: 5px; background: ${fo.fnd.surface};"></span>
+              <span style="width: 22px; height: 30px; border-radius: 5px; background: ${fo.fnd.surfaceAlt};"></span>
+              <span style="width: 22px; height: 30px; border-radius: 5px; background: ${fo.fnd.ink};"></span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
+              <span style="font-size: 10px; font-weight: 600; color: #B0BAC5;">0${fo.numLabel}</span>
+              <span style="font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: #0B1520;">${fo.fnd.name}</span>
+            </div>
+            <div style="font-size: 11.5px; color: #8A98A6; font-weight: 500;">${fo.fnd.reference}</div>
+          </button>`).join('')}
+      </div>
+    </div>
+
+    <!-- BRAND INJECTOR -->
+    <div style="max-width: 1340px; margin: 0 auto; padding: 28px 32px 0;">
+      <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #8A98A6; margin-bottom: 14px;">Step 2 · Load a client brand kit</div>
+      <div style="background: #FFFFFF; border: 1px solid #E5E9EF; border-radius: 14px; padding: 18px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.05);">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          ${brands.map(b => `
+            <button data-brand="${b.key}" style="cursor: pointer; display: flex; align-items: center; gap: 11px; padding: 10px 16px 10px 11px; border-radius: 10px; background: ${b.chipBg}; border: 1.5px solid ${b.chipBorder}; transition: all 0.15s;">
+              <span style="width: 30px; height: 30px; border-radius: 8px; background: ${b.primary}; display: grid; place-items: center; color: ${b.onPrimary}; font-size: 13px; font-weight: 700; letter-spacing: -0.02em;">${b.initial}</span>
+              <span style="display: flex; flex-direction: column; line-height: 1.2; text-align: left;">
+                <span style="font-size: 13px; font-weight: 600; color: #0B1520;">${b.name}</span>
+                <span style="font-size: 10.5px; color: #8A98A6; font-weight: 500;">${b.kind}</span>
+              </span>
+              <span style="display: inline-flex; gap: 3px; margin-left: 4px;">
+                <span style="width: 9px; height: 9px; border-radius: 50%; background: ${b.primary};"></span>
+                <span style="width: 9px; height: 9px; border-radius: 50%; background: ${b.secondary};"></span>
+                <span style="width: 9px; height: 9px; border-radius: 50%; background: ${b.accent};"></span>
+              </span>
+            </button>`).join('')}
+        </div>
+        <div style="font-size: 10.5px; color: #B0BAC5; font-weight: 500; max-width: 150px; line-height: 1.5; text-align: right; border-left: 1px solid #EEF1F5; padding-left: 20px;">Representative colors for demonstration — not official brand assets.</div>
+      </div>
+    </div>
+
+    <!-- PANEL -->
+    <div style="max-width: 1340px; margin: 0 auto; padding: 48px 32px 0;">
+
+      <!-- Foundation header -->
+      <div style="display: grid; grid-template-columns: 1fr 360px; gap: 56px; align-items: start; margin-bottom: 52px;">
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px;">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #8A98A6;">Foundation ${active.numLabel} / 04</span>
+            <span style="height: 1px; flex: 1; background: #E5E9EF;"></span>
+            <span style="font-size: 11px; font-weight: 500; color: #8A98A6;">${f.reference}</span>
+          </div>
+          <h2 style="font-weight: 600; font-size: 64px; line-height: 0.98; letter-spacing: -0.035em; color: #0B1520; margin: 0 0 18px;">${f.name}</h2>
+          <p style="font-size: 16px; line-height: 1.55; color: #4A5560; margin: 0; max-width: 50ch;">${f.rationale}</p>
+        </div>
+        <div style="border: 1px solid #E5E9EF; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.05);">
+          <div style="background: ${f.canvas}; padding: 26px; border-bottom: 1px solid ${f.hairline};">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${f.inkMuted}; margin-bottom: 16px;">Co-brand lockup</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 38px; height: 38px; border-radius: 10px; background: ${loaded.primary}; display: grid; place-items: center; color: ${loaded.onPrimary}; font-size: 17px; font-weight: 700; letter-spacing: -0.02em;">${loaded.initial}</div>
+              <div style="display: flex; flex-direction: column; line-height: 1.15;">
+                <span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: ${f.ink};">${loaded.name}</span>
+                <span style="font-size: 11px; font-weight: 500; color: ${f.inkMuted};">powered by Vantage</span>
+              </div>
+            </div>
+          </div>
+          <div style="background: ${f.surface}; padding: 16px 26px; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 11px; font-weight: 500; color: ${f.inkMuted};">Rendered on ${f.name}</span>
+            <span style="font-size: 11px; font-weight: 600; color: ${loaded.primary};">●●●</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKENS -->
+      <div style="margin-bottom: 76px;">
+        <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px;">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #8A98A6;">Foundation · 90%</span>
+          <h3 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: #0B1520; margin: 0;">Owned by Vantage — never changes</h3>
+          <span style="height: 1px; flex: 1; background: #E5E9EF;"></span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px;">
+          ${active.neutrals.map(s => `
+            <div style="border: 1px solid #E5E9EF; background: #FFFFFF; border-radius: 11px; overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,0.04);">
+              <div style="height: 96px; background: ${s.hex}; border-bottom: 1px solid #E5E9EF; position: relative;">
+                <span style="position: absolute; bottom: 9px; left: 11px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: ${s.onLabel}; opacity: 0.8;">${s.role}</span>
+              </div>
+              <div style="padding: 11px 12px;">
+                <div style="font-size: 13px; font-weight: 600; letter-spacing: -0.01em; color: #0B1520; margin-bottom: 2px;">${s.label}</div>
+                <div style="font-size: 10.5px; font-weight: 500; color: #8A98A6;">${s.hex}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          ${active.semantics.map(s => `
+            <div style="border: 1px solid #E5E9EF; background: #FFFFFF; border-radius: 11px; display: grid; grid-template-columns: 92px 1fr; overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,0.04);">
+              <div style="background: ${s.hex}; display: flex; align-items: flex-end; padding: 11px;">
+                <span style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: ${s.on};">${s.role}</span>
+              </div>
+              <div style="padding: 11px 13px;">
+                <div style="font-size: 13px; font-weight: 600; color: #0B1520; margin-bottom: 1px;">${s.label}</div>
+                <div style="font-size: 10.5px; font-weight: 500; color: #8A98A6; margin-bottom: 6px;">${s.hex}</div>
+                <div style="font-size: 11px; line-height: 1.4; color: #5B6B7B;">${s.function}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+
+        <div style="display: flex; align-items: baseline; gap: 14px; margin: 40px 0 22px;">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: ${loaded.primary};">Brand · 10%</span>
+          <h3 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: #0B1520; margin: 0;">Injected by ${loaded.name} — swaps per client</h3>
+          <span style="height: 1px; flex: 1; background: #E5E9EF;"></span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          ${active.brandSlots.map(s => `
+            <div style="border: 1px solid #E5E9EF; background: #FFFFFF; border-radius: 13px; overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.05);">
+              <div style="height: 130px; background: ${s.hex}; display: flex; flex-direction: column; justify-content: space-between; padding: 16px;">
+                <span style="font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${s.on}; opacity: 0.85;">${s.role}</span>
+                <span style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: ${s.on};">${s.sample}</span>
+              </div>
+              <div style="padding: 13px 15px; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div style="font-size: 13.5px; font-weight: 600; color: #0B1520;">${s.label}</div>
+                  <div style="font-size: 11px; font-weight: 500; color: #8A98A6;">${s.hex}</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 14px; font-weight: 700; color: #0B1520;">${s.ratio}:1</div>
+                  <div style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em; color: ${s.gradeColor};">${s.grade} · text ${s.onName}</div>
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- MOCKUP -->
+      <div style="margin-bottom: 76px;">
+        <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px;">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #8A98A6;">Applied</span>
+          <h3 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: #0B1520; margin: 0;">${f.name} foundation, ${loaded.name} brand</h3>
+          <span style="height: 1px; flex: 1; background: #E5E9EF;"></span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
+          <!-- Frame -->
+          <div style="border: 1px solid #E5E9EF; background: #FFFFFF; border-radius: 16px; padding: 10px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.06);">
+            <div style="height: 580px; border-radius: 10px; overflow: hidden; display: grid; grid-template-columns: 218px 1fr; background: ${f.canvas}; border: 1px solid ${f.hairline};">
+              <!-- Sidebar -->
+              <div style="background: ${f.surface}; border-right: 1px solid ${f.hairline}; padding: 20px 16px; display: flex; flex-direction: column; gap: 22px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 26px; height: 26px; border-radius: 7px; background: ${loaded.primary}; display: grid; place-items: center; color: ${loaded.onPrimary}; font-size: 12px; font-weight: 700; letter-spacing: -0.02em;">${loaded.initial}</div>
+                  <span style="font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: ${f.ink};">${loaded.name}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 3px;">
+                  <div style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${f.inkSubtle}; padding: 0 11px 6px;">Workspace</div>
+                  <div style="padding: 9px 11px; background: ${loaded.primary}; color: ${loaded.onPrimary}; border-radius: 8px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 9px;">
+                    <span style="width: 5px; height: 5px; background: ${loaded.accent}; border-radius: 50%;"></span>
+                    Book of Clients
+                  </div>
+                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500;">Pipeline</div>
+                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500;">Mandates</div>
+                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
+                    <span>Compliance Queue</span>
+                    <span style="background: ${f.error}; color: ${f.onError}; font-size: 9.5px; font-weight: 700; border-radius: 999px; padding: 1px 6px;">3</span>
+                  </div>
+                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500;">Reports</div>
+                </div>
+                <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid ${f.hairline}; display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 28px; height: 28px; border-radius: 999px; background: ${loaded.secondary}; display: grid; place-items: center; color: ${loaded.onSecondary}; font-size: 11px; font-weight: 600;">RM</div>
+                  <div style="display: flex; flex-direction: column; line-height: 1.25;">
+                    <span style="font-size: 11.5px; font-weight: 600; color: ${f.ink};">R. Mehta</span>
+                    <span style="font-size: 10px; color: ${f.inkMuted};">Senior RM · NRI Cluster</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Main -->
+              <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <div style="background: ${loaded.secondary}; padding: 16px 26px; display: flex; align-items: center; justify-content: space-between;">
+                  <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                    <span style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${loaded.onSecondaryMuted};">Book Overview</span>
+                    <span style="font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: ${loaded.onSecondary};">Asia-Pacific Desk · Q2</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 11px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(255,255,255,0.14); border-radius: 999px; font-size: 10.5px; font-weight: 600; color: ${loaded.onSecondary};">
+                      <span style="width: 5px; height: 5px; background: ${loaded.accent}; border-radius: 50%;"></span> LIVE
+                    </span>
+                    <button style="background: ${loaded.primary}; color: ${loaded.onPrimary}; border: none; padding: 8px 15px; font-size: 11.5px; font-weight: 600; border-radius: 7px; cursor: pointer;">New Mandate</button>
+                  </div>
+                </div>
+                <div style="padding: 22px 26px; display: flex; flex-direction: column; gap: 18px; flex: 1; overflow: hidden;">
+                  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px;">
+                    <div style="background: ${f.surface}; border: 1px solid ${f.hairline}; border-radius: 11px; padding: 14px 15px;">
+                      <div style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: ${f.inkMuted}; margin-bottom: 7px;">Total AUM</div>
+                      <div style="font-size: 23px; font-weight: 600; letter-spacing: -0.02em; color: ${f.ink};">$1.84B</div>
+                      <div style="font-size: 10.5px; font-weight: 600; color: ${f.success}; margin-top: 4px;">▲ 4.2% QoQ</div>
+                    </div>
+                    <div style="background: ${f.surface}; border: 1px solid ${f.hairline}; border-radius: 11px; padding: 14px 15px;">
+                      <div style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: ${f.inkMuted}; margin-bottom: 7px;">Net New Money</div>
+                      <div style="font-size: 23px; font-weight: 600; letter-spacing: -0.02em; color: ${f.ink};">$112M</div>
+                      <div style="font-size: 10.5px; font-weight: 600; color: ${f.inkMuted}; margin-top: 4px;">12 mandates closed</div>
+                    </div>
+                    <div style="background: ${f.surface}; border: 1px solid ${f.hairline}; border-radius: 11px; padding: 14px 15px; position: relative;">
+                      <div style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: ${f.inkMuted}; margin-bottom: 7px;">Pending KYC</div>
+                      <div style="font-size: 23px; font-weight: 600; letter-spacing: -0.02em; color: ${f.ink};">7</div>
+                      <div style="font-size: 10.5px; font-weight: 600; color: ${f.warning}; margin-top: 4px;">2 due today</div>
+                    </div>
+                  </div>
+                  <div style="background: ${f.surface}; border: 1px solid ${f.hairline}; border-radius: 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                    <div style="padding: 13px 17px; border-bottom: 1px solid ${f.hairline}; display: flex; align-items: center; justify-content: space-between;">
+                      <div style="display: flex; align-items: center; gap: 9px;">
+                        <span style="font-size: 14px; font-weight: 600; color: ${f.ink};">Accounts awaiting action</span>
+                        <span style="padding: 1px 8px; background: ${f.surfaceAlt}; color: ${f.inkMuted}; font-size: 10.5px; font-weight: 600; border-radius: 999px;">14</span>
+                      </div>
+                      <span style="font-size: 11.5px; font-weight: 600; color: ${loaded.primary}; cursor: pointer;">View all →</span>
+                    </div>
+                    ${active.mockRows.map(row => `
+                      <div style="padding: 11px 17px; border-bottom: 1px solid ${f.hairline}; display: grid; grid-template-columns: 1.6fr 1fr 0.9fr 80px; gap: 12px; align-items: center;">
+                        <div style="display: flex; flex-direction: column; line-height: 1.3;">
+                          <span style="font-size: 12.5px; font-weight: 600; color: ${f.ink};">${row.client}</span>
+                          <span style="font-size: 10.5px; color: ${f.inkMuted};">${row.entity}</span>
+                        </div>
+                        <span style="font-size: 11.5px; font-weight: 500; color: ${f.inkMuted};">${row.service}</span>
+                        <span style="font-size: 11px; font-weight: 600; color: ${row.statusColor};">${row.status}</span>
+                        <span style="padding: 3px 0; background: ${row.tagBg}; color: ${row.tagFg}; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; text-align: center;">${row.tag}</span>
+                      </div>`).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Side rail -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="border: 1px solid #E5E9EF; background: #FFFFFF; border-radius: 13px; padding: 18px; box-shadow: 0 1px 2px rgba(16,24,40,0.04);">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #8A98A6; margin-bottom: 15px;">Where each layer lands</div>
+              <div style="display: flex; flex-direction: column; gap: 13px;">
+                <div style="display: flex; gap: 11px; align-items: flex-start;">
+                  <span style="width: 13px; height: 13px; border-radius: 4px; background: ${f.canvas}; border: 1px solid ${f.hairline}; margin-top: 1px; flex-shrink: 0;"></span>
+                  <div><div style="font-size: 12px; font-weight: 600; color: #0B1520;">Canvas + Surface</div><div style="font-size: 11px; color: #8A98A6;">Workspace, cards, sidebar — 90%</div></div>
+                </div>
+                <div style="display: flex; gap: 11px; align-items: flex-start;">
+                  <span style="width: 13px; height: 13px; border-radius: 4px; background: ${f.ink}; margin-top: 1px; flex-shrink: 0;"></span>
+                  <div><div style="font-size: 12px; font-weight: 600; color: #0B1520;">Ink</div><div style="font-size: 11px; color: #8A98A6;">All text — foundation-owned</div></div>
+                </div>
+                <div style="display: flex; gap: 11px; align-items: flex-start;">
+                  <span style="width: 13px; height: 13px; border-radius: 4px; background: ${loaded.primary}; margin-top: 1px; flex-shrink: 0;"></span>
+                  <div><div style="font-size: 12px; font-weight: 600; color: #0B1520;">Brand primary</div><div style="font-size: 11px; color: #8A98A6;">Active nav, CTA, links — 10%</div></div>
+                </div>
+                <div style="display: flex; gap: 11px; align-items: flex-start;">
+                  <span style="width: 13px; height: 13px; border-radius: 4px; background: ${loaded.secondary}; margin-top: 1px; flex-shrink: 0;"></span>
+                  <div><div style="font-size: 12px; font-weight: 600; color: #0B1520;">Brand secondary</div><div style="font-size: 11px; color: #8A98A6;">Header band, avatars</div></div>
+                </div>
+                <div style="display: flex; gap: 11px; align-items: flex-start;">
+                  <span style="width: 13px; height: 13px; border-radius: 4px; background: ${f.success}; margin-top: 1px; flex-shrink: 0;"></span>
+                  <div><div style="font-size: 12px; font-weight: 600; color: #0B1520;">Semantics</div><div style="font-size: 11px; color: #8A98A6;">Status only — never brand-tinted</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="border: 1px solid #E5E9EF; border-radius: 13px; padding: 18px; background: ${loaded.primary}; color: ${loaded.onPrimary};">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; margin-bottom: 11px;">Why it stays safe</div>
+              <p style="font-size: 12.5px; line-height: 1.55; margin: 0; opacity: 0.95;">${f.compositionNote}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AA MATRIX -->
+      <div style="margin-bottom: 56px;">
+        <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px;">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #8A98A6;">Accessibility</span>
+          <h3 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: #0B1520; margin: 0;">WCAG AA matrix — ${f.name} × ${loaded.name}</h3>
+          <span style="height: 1px; flex: 1; background: #E5E9EF;"></span>
+          <span style="font-size: 10.5px; font-weight: 500; color: #8A98A6;">Computed live · sRGB · WCAG 2.1</span>
+        </div>
+        <div style="border: 1px solid #E5E9EF; border-radius: 14px; background: #FFFFFF; overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,0.04);">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr);">
+            ${active.matrix.map(m => `
+              <div style="border-right: 1px solid #E5E9EF; border-bottom: 1px solid #E5E9EF; display: flex; flex-direction: column;">
+                <div style="background: ${m.bg}; padding: 18px 17px 20px; min-height: 132px; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                  <span style="position: absolute; top: 11px; right: 11px; padding: 3px 7px; background: ${m.badgeBg}; color: ${m.badgeFg}; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; border-radius: 999px;">${m.grade}</span>
+                  <div style="color: ${m.fg}; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15;">${m.large}</div>
+                  <div style="color: ${m.fg}; font-size: 12px; line-height: 1.4;">${m.normal}</div>
+                </div>
+                <div style="padding: 11px 14px; background: #FBFCFD; border-top: 1px solid #E5E9EF;">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: ${m.layerColor};">${m.layer}</span>
+                    <span style="font-size: 14px; font-weight: 700; color: #0B1520;">${m.ratio}:1</span>
+                  </div>
+                  <div style="font-size: 10.5px; font-weight: 500; color: #5B6B7B;">${m.pairing}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+          <div style="padding: 13px 18px; background: #FBFCFD; display: flex; gap: 26px; align-items: center; flex-wrap: wrap; font-size: 10.5px; font-weight: 500; color: #5B6B7B;">
+            <div style="display: flex; align-items: center; gap: 7px;"><span style="padding: 2px 7px; background: #0B1520; color: #fff; border-radius: 999px; font-size: 9px; font-weight: 700;">AAA</span><span>≥ 7.0 : 1</span></div>
+            <div style="display: flex; align-items: center; gap: 7px;"><span style="padding: 2px 7px; background: #3A4A5A; color: #fff; border-radius: 999px; font-size: 9px; font-weight: 700;">AA</span><span>≥ 4.5 : 1 normal · ≥ 3.0 : 1 large</span></div>
+            <span style="height: 12px; width: 1px; background: #E5E9EF;"></span>
+            <span>Brand colors appear as fills only; the system auto-selects the on-color, so every pairing clears AA for any loaded brand.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width: 1340px; margin: 0 auto; padding: 28px 32px 0; border-top: 1px solid #E5E9EF; display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 500; color: #8A98A6;">
+      <span>Keenai Global · Vantage · White-Label Foundation System</span>
+      <span>${today}</span>
+    </div>
+  </div>`;
+
+  // Wire interactions
+  document.querySelectorAll('[data-foundation]').forEach(el =>
+    el.addEventListener('click', () => { state.foundationIndex = +el.dataset.foundation; render(); }));
+  document.querySelectorAll('[data-brand]').forEach(el =>
+    el.addEventListener('click', () => { state.brandKey = el.dataset.brand; render(); }));
+}
+
+render();
+</script>
+</body>
+</html>
