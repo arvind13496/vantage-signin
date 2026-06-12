@@ -89,13 +89,12 @@ const FOUNDATIONS = [
 
 /* ONE tenant colour (primary) + ONE optional accent. No secondary. */
 const BRANDS = [
-  { key:'vantage',    name:'Vantage',           kind:'House default', initial:'V', primary:'#083344', accent:'#36C5A6' },
   { key:'salesforce', name:'Salesforce',        kind:'Sample client', initial:'S', primary:'#0176D3', accent:'#FE9339' },
   { key:'slack',      name:'Slack',             kind:'Sample client', initial:'S', primary:'#4A154B', accent:'#36C5F0' },
   { key:'lighthouse', name:'Lighthouse Canton', kind:'Sample client', initial:'L', primary:'#1A2B4A', accent:'#C9A227' },
 ];
 
-let state = { foundationIndex: 0, brandKey: 'vantage' };
+let state = { foundationIndex: 0, brandKey: 'salesforce' };
 
 function fndWithDerived(f){ return { ...f, onError: onColor(f.error), onSuccess: onColor(f.success) }; }
 function loadedBrand(){

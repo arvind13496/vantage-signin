@@ -60,9 +60,11 @@
       success:'#3FB37F', warning:'#E0A33E', error:'#F06A6A' },
   };
 
+  /* ---- Vantage platform identity — NOT a tenant; used for shell chrome only ---- */
+  const PLATFORM = { name:'Vantage', initial:'V', primary:'#083344', accent:'#36C5A6' };
+
   /* ---- Sample tenant brand kits — ONE colour + ONE accent (no secondary) ---- */
   const BRANDS = {
-    vantage:    { key:'vantage',    name:'Vantage',           kind:'House default', initial:'V', primary:'#083344', accent:'#36C5A6' },
     salesforce: { key:'salesforce', name:'Salesforce',        kind:'Sample client', initial:'S', primary:'#0176D3', accent:'#FE9339' },
     slack:      { key:'slack',      name:'Slack',             kind:'Sample client', initial:'S', primary:'#4A154B', accent:'#36C5F0' },
     lighthouse: { key:'lighthouse', name:'Lighthouse Canton', kind:'Sample client', initial:'L', primary:'#1A2B4A', accent:'#C9A227' },
@@ -122,10 +124,10 @@
       brand = { name: q.get('tenant') || 'Custom', initial: (q.get('tenant')||'C')[0].toUpperCase(),
                 primary: q.get('primary'), accent: q.get('accent') || null };
     } else {
-      brand = BRANDS[q.get('brand')] || BRANDS.vantage;
+      brand = BRANDS[q.get('brand')] || BRANDS.salesforce;
     }
     return { foundation, brand };
   }
 
-  global.VantageTheme = { WHITE, DARK, FOUNDATIONS, BRANDS, contrast, onColor, grade, rgba, vars, apply, fromUrl };
+  global.VantageTheme = { WHITE, DARK, PLATFORM, FOUNDATIONS, BRANDS, contrast, onColor, grade, rgba, vars, apply, fromUrl };
 })(window);

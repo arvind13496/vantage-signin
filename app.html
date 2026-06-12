@@ -393,11 +393,9 @@
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
       <div class="sidebar-inner">
-      <div class="brand-row">
-        <span class="mark">
-          <svg viewBox="0 0 46 46" fill="none"><path d="M0 23.07l23 23.11 23-23.11L23 0 0 23.07Z" fill="#fff"/><path d="M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z" fill="var(--accent)"/></svg>
-        </span>
-        <span class="name">Vantage</span>
+      <div class="brand-row" id="brandRow">
+        <span class="mark" id="brandMark" style="font-size:15px;font-weight:700;letter-spacing:-0.02em;color:#fff;"></span>
+        <span class="name" id="brandName"></span>
         <span class="chev">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </span>
@@ -567,7 +565,7 @@
     const root = document.documentElement;
     const F = VantageTheme.FOUNDATIONS;
     const B = VantageTheme.BRANDS;
-    let state = { foundation: "Slate", brand: { ...B.vantage } };
+    let state = { foundation: "Slate", brand: { ...B.salesforce } };
 
     /* Map the shared contract vars onto this page's existing var names. */
     function appVars(fKey, brand){
@@ -602,9 +600,15 @@
       };
     }
     function applyTheme(){
-      Object.entries(appVars(state.foundation, state.brand)).forEach(([k,val]) => root.style.setProperty(k,val));
+      const v = appVars(state.foundation, state.brand);
+      Object.entries(v).forEach(([k,val]) => root.style.setProperty(k,val));
       document.querySelectorAll("[data-fnd]").forEach(el => el.classList.toggle("active", el.dataset.fnd === state.foundation));
       document.querySelectorAll("[data-brand]").forEach(el => el.classList.toggle("active", el.dataset.brand === state.brand.key));
+      /* Update sidebar tenant logo */
+      const mark = document.getElementById("brandMark");
+      const nameEl = document.getElementById("brandName");
+      if (mark) { mark.textContent = state.brand.initial || state.brand.name[0]; mark.style.background = state.brand.primary; }
+      if (nameEl) nameEl.textContent = state.brand.name;
       syncPickers();
     }
 
@@ -670,7 +674,7 @@
     document.querySelectorAll(".pat-thumb").forEach(t => t.onclick = () => applyPattern(t.dataset.cls));
     applyPattern("p-marks");
 
-    document.getElementById("reset").onclick = () => { state.brand = { ...B.vantage }; applyTheme(); };
+    document.getElementById("reset").onclick = () => { state.brand = { ...B.salesforce }; applyTheme(); };
     document.getElementById("export").onclick = () => {
       const v = VantageTheme.vars(state.foundation, state.brand);
       const lines = [":root {", ...Object.entries(v).map(([k,val]) => `  ${k}: ${val};`), "}"];
