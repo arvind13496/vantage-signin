@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vantage — Prospects (Theme Lab)</title>
+  <style>
+    /* =========================================================
+       THEME TOKENS  — every color the UI uses is a variable here.
+       Presets and the live color pickers just override these.
+       ========================================================= */
+    :root {
+      --sidebar-bg: #0d1117;
+      --sidebar-text: #e8eaed;
+      --sidebar-text-muted: #8b929c;
+      --sidebar-section: #6b7280;
+      --sidebar-active-bg: #2a2f3a;
+      --sidebar-active-text: #ffffff;
+      --sidebar-border: rgba(255,255,255,0.06);
+
+      --app-bg: #ffffff;
+      --surface: #ffffff;
+      --text: #1a1d21;
+      --text-muted: #6b7280;
+      --text-faint: #9aa0a8;
+      --border: #ececec;
+      --row-border: #f2f2f2;
+      --row-hover: #faf9f8;
+
+      --input-bg: #ffffff;
+      --input-border: #e6e6e6;
+      --input-text: #1a1d21;
+
+      --accent: #f26b3a;
+      --accent-text: #ffffff;
+      --accent-weak: rgba(242,107,58,0.12);
+
+      --icon: #6b7280;
+      --badge-border: #d6d6d6;
+      --badge-text: #5a5f66;
+
+      --radius: 12px;
+      --sidebar-w: 260px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--app-bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.25s, color 0.25s;
+    }
+
+    .app { display: flex; min-height: 100vh; }
+
+    /* ---------------- Sidebar ---------------- */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      border-right: 1px solid var(--sidebar-border);
+      transition: background 0.25s;
+    }
+    .sidebar-inner {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 14px 14px;
+    }
+    /* full-height branding pattern layer behind the nav.
+       Scope --accent to a light hint so the pattern reads on the dark panel
+       (buttons/active states outside still use the brand --accent). */
+    .sidebar-art {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.10;   /* whisper — a hint, not a texture */
+      pointer-events: none;
+      --accent: var(--sidebar-pat, var(--sidebar-text));
+    }
+    /* softens the pattern's top edge (just below User Management) and
+       bottom edge (just above Help Centre) within the spacer region */
+    .sidebar-fade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(to bottom,
+        var(--sidebar-bg) 0%,
+        transparent 22%,
+        transparent 80%,
+        var(--sidebar-bg) 100%);
+    }
+    .brand-row {
+      display: flex; align-items: center; gap: 11px;
+      padding: 6px 8px 20px;
+    }
+    .brand-row .mark {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-row .mark svg { width: 19px; height: 19px; }
+    .brand-row .name { font-size: 18px; font-weight: 700; color: var(--sidebar-active-text); }
+    .brand-row .chev { margin-left: auto; color: var(--sidebar-text-muted); }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: 9px;
+      color: var(--sidebar-text-muted);
+      font-size: 15px; font-weight: 500;
+      cursor: pointer; margin-bottom: 2px;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item svg { width: 19px; height: 19px; flex-shrink: 0; }
+    .nav-item:hover { color: var(--sidebar-text); background: rgba(255,255,255,0.04); }
+    .nav-item.active {
+      background: var(--sidebar-active-bg);
+      color: var(--sidebar-active-text);
+      font-weight: 600;
+      box-shadow: inset 3px 0 0 var(--sidebar-indicator);  /* bright accent rail */
+    }
+    .nav-item.active::after {
+      content: ""; margin-left: auto;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--sidebar-indicator);   /* accent dot */
+    }
+    .nav-item .chev-right { margin-left: auto; }
+
+    .nav-section {
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--sidebar-section); font-weight: 600;
+      padding: 18px 12px 8px;
+    }
+
+    /* negative horizontal margins cancel the inner padding (14px) so the
+       pattern spans the full width of the sidebar, edge to edge */
+    .sidebar .spacer { flex: 1; position: relative; overflow: hidden; margin-left: -14px; margin-right: -14px; }
+
+    .profile {
+      display: flex; align-items: center; gap: 11px;
+      padding: 12px 8px 4px;
+      border-top: 1px solid var(--sidebar-border);
+      margin-top: 8px;
+    }
+    .profile .ava {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: #cfd3d8; flex-shrink: 0;
+      display:flex; align-items:center; justify-content:center; font-size:16px;
+    }
+    .profile .pname { font-size: 14px; font-weight: 600; color: var(--sidebar-active-text); }
+    .profile .prole { font-size: 12px; color: var(--sidebar-text-muted); }
+    .profile .dots { margin-left: auto; color: var(--sidebar-text-muted); }
+
+    /* ----- Branding patterns: each tints itself with the live --accent ----- */
+    .p-none { background: none; }
+
+    .p-dots {
+      background-image: radial-gradient(color-mix(in srgb, var(--accent) 60%, transparent) 1.1px, transparent 1.4px);
+      background-size: 9px 9px;
+    }
+    .p-grid {
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--accent) 26%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 26%, transparent) 1px, transparent 1px);
+      background-size: 10px 10px;
+    }
+    .p-diamonds {
+      background-image:
+        repeating-linear-gradient(45deg,  color-mix(in srgb, var(--accent) 26%, transparent) 0 1px, transparent 1px 8px),
+        repeating-linear-gradient(-45deg, color-mix(in srgb, var(--accent) 26%, transparent) 0 1px, transparent 1px 8px);
+    }
+    .p-stripes {
+      background-image: repeating-linear-gradient(60deg,
+        color-mix(in srgb, var(--accent) 34%, transparent) 0 3px, transparent 3px 8px);
+    }
+    .p-rings {
+      background-image: repeating-radial-gradient(circle at 12% 120%,
+        transparent 0 7px,
+        color-mix(in srgb, var(--accent) 30%, transparent) 7px 8px,
+        transparent 8px 15px);
+    }
+    .p-glow {
+      background-image: radial-gradient(130% 95% at 18% 100%,
+        color-mix(in srgb, var(--accent) 62%, transparent), transparent 62%);
+    }
+    .p-mesh {
+      background-image:
+        radial-gradient(65% 85% at 0% 0%,   color-mix(in srgb, var(--accent) 48%, transparent), transparent 70%),
+        radial-gradient(75% 95% at 100% 100%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 72%);
+    }
+    /* Repeated Vantage star mark, tinted via mask so it follows --accent */
+    .p-marks {
+      background-color: color-mix(in srgb, var(--accent) 42%, transparent);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+              mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+      -webkit-mask-size: 18px 18px; mask-size: 18px 18px;
+      -webkit-mask-repeat: repeat;  mask-repeat: repeat;
+    }
+    /* Repeated diamond outline */
+    .p-diamond-grid {
+      background-color: color-mix(in srgb, var(--accent) 40%, transparent);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M23 2 44 23 23 44 2 23 23 2Z' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+              mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M23 2 44 23 23 44 2 23 23 2Z' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+      -webkit-mask-size: 17px 17px; mask-size: 17px 17px;
+      -webkit-mask-repeat: repeat;  mask-repeat: repeat;
+    }
+
+    /* ---------------- Main ---------------- */
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+    .topbar {
+      display: flex; align-items: center;
+      padding: 22px 34px;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+    .topbar .actions { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+    .topbar .actions .ic { color: var(--icon); cursor: pointer; display:flex; }
+    .topbar .actions .ic:hover { color: var(--text); }
+
+    .content { padding: 26px 34px; }
+
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .search {
+      flex: 1; position: relative;
+    }
+    .search svg {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; color: var(--text-faint);
+    }
+    .search input {
+      width: 100%; padding: 13px 16px 13px 46px;
+      border: 1px solid var(--input-border); border-radius: 10px;
+      background: var(--input-bg); color: var(--input-text);
+      font-size: 15px; outline: none;
+    }
+    .search input::placeholder { color: var(--text-faint); }
+    .search input:focus { border-color: var(--accent); }
+    .filter-btn {
+      width: 48px; height: 48px; flex-shrink: 0;
+      border: 1px solid var(--input-border); border-radius: 10px;
+      background: var(--input-bg); color: var(--icon);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .filter-btn:hover { color: var(--text); }
+    .add-btn {
+      margin-left: auto;
+      padding: 13px 20px; border-radius: 10px; border: none;
+      background: var(--accent); color: var(--accent-text);
+      font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .add-btn:hover { filter: brightness(0.95); }
+
+    /* ---------------- Table ---------------- */
+    .table { width: 100%; }
+    .thead, .row {
+      display: grid;
+      grid-template-columns: 2.4fr 1.6fr 1fr 1fr 1.3fr 1.5fr;
+      align-items: center;
+      column-gap: 16px;
+    }
+    .thead {
+      padding: 0 8px 14px;
+      border-bottom: 1px solid var(--row-border);
+    }
+    .thead .col {
+      font-size: 14px; color: var(--text-muted); font-weight: 500;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .thead .col.first { gap: 14px; }
+    .thead .col svg { width: 14px; height: 14px; color: var(--text-faint); }
+
+    .row {
+      padding: 16px 8px;
+      border-bottom: 1px solid var(--row-border);
+      transition: background 0.12s;
+    }
+    .row:hover { background: var(--row-hover); }
+
+    .cb {
+      width: 18px; height: 18px; border-radius: 5px;
+      border: 1.5px solid #cdd0d4; background: var(--surface);
+      flex-shrink: 0; cursor: pointer; appearance: none; -webkit-appearance: none;
+      position: relative;
+    }
+    .cb:checked { background: var(--accent); border-color: var(--accent); }
+    .cb:checked::after {
+      content: ""; position: absolute; left: 5px; top: 1.5px;
+      width: 5px; height: 9px; border: solid var(--accent-text);
+      border-width: 0 2px 2px 0; transform: rotate(45deg);
+    }
+
+    .prospect { display: flex; align-items: center; gap: 14px; }
+    .avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: #3a3a3a; flex-shrink: 0;
+    }
+    .pinfo .nm { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .pinfo .id { font-size: 13px; color: var(--text-faint); margin-top: 2px; }
+    .badge {
+      font-size: 11px; font-weight: 500; color: var(--badge-text);
+      border: 1px solid var(--badge-border); border-radius: 999px;
+      padding: 2px 9px; white-space: nowrap;
+    }
+
+    .cell { font-size: 15px; color: var(--text); }
+    .cell.muted { color: var(--text-muted); }
+
+    /* ---------------- Theme Lab panel ---------------- */
+    .lab-toggle {
+      position: fixed; right: 22px; bottom: 22px; z-index: 50;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent); color: var(--accent-text);
+      border: none; cursor: pointer;
+      box-shadow: 0 10px 30px -8px rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lab-toggle svg { width: 24px; height: 24px; }
+
+    .lab {
+      position: fixed; right: 22px; bottom: 86px; z-index: 50;
+      width: 320px; max-height: 80vh; overflow-y: auto;
+      background: #ffffff; color: #1a1d21;
+      border: 1px solid #e6e6e6; border-radius: 16px;
+      box-shadow: 0 24px 60px -20px rgba(0,0,0,0.35);
+      padding: 20px; display: none;
+    }
+    .lab.open { display: block; }
+    .lab h3 { font-size: 15px; margin-bottom: 4px; }
+    .lab .sub { font-size: 12px; color: #8a8f96; margin-bottom: 16px; }
+    .lab .group-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color:#9aa0a8; font-weight:600; margin: 16px 0 8px; }
+    .presets { display: flex; gap: 8px; flex-wrap: wrap; }
+    .preset {
+      flex: 1; min-width: 84px; padding: 9px; border-radius: 9px; cursor: pointer;
+      border: 1.5px solid #e6e6e6; background: #fff; font-size: 12px; font-weight: 600; color:#1a1d21;
+      display: flex; flex-direction: column; align-items: center; gap: 7px;
+    }
+    .preset:hover { border-color: #c9c9c9; }
+    .preset.active { border-color: var(--accent); }
+    .swatch { width: 100%; height: 22px; border-radius: 5px; border:1px solid rgba(0,0,0,0.08); }
+
+    .picker { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; }
+    .picker label { font-size: 13px; color: #3a3f45; }
+    .picker .ctl { display: flex; align-items: center; gap: 8px; }
+    .picker input[type="color"] {
+      width: 30px; height: 30px; border: 1px solid #ddd; border-radius: 7px;
+      background: none; cursor: pointer; padding: 2px;
+    }
+    .picker .hex { font-size: 12px; color: #8a8f96; font-variant-numeric: tabular-nums; width: 64px; text-align:right; }
+
+    .patterns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pat-thumb {
+      height: 46px; border-radius: 8px; cursor: pointer;
+      border: 1.5px solid #e6e6e6; background-color: #f3f3f4;
+      position: relative; overflow: hidden;
+    }
+    .pat-thumb:hover { border-color: #c9c9c9; }
+    .pat-thumb.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-weak); }
+    .pat-thumb .pname {
+      position: absolute; left: 5px; bottom: 3px; font-size: 9px; font-weight: 600;
+      color: #6b7280; text-transform: capitalize; pointer-events: none;
+      background: rgba(255,255,255,0.7); padding: 0 3px; border-radius: 3px;
+    }
+    /* thumbnails preview patterns using the accent too */
+    .pat-thumb .swatch-pat { position: absolute; inset: 0; }
+
+    .lab .reset {
+      width: 100%; margin-top: 16px; padding: 10px; border-radius: 9px;
+      border: 1px solid #e6e6e6; background:#fafafa; cursor: pointer; font-size: 13px; font-weight:600; color:#3a3f45;
+    }
+    .lab .reset:hover { background:#f0f0f0; }
+    .lab .export {
+      width: 100%; margin-top: 8px; padding: 10px; border-radius: 9px;
+      border: none; background:#1a1d21; color:#fff; cursor: pointer; font-size: 13px; font-weight:600;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+      <div class="brand-row" id="brandRow">
+        <span class="mark" id="brandMark" style="font-size:15px;font-weight:700;letter-spacing:-0.02em;color:#fff;"></span>
+        <span class="name" id="brandName"></span>
+        <span class="chev">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+      </div>
+
+      <a class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 8-8"/><path d="M16 8h5v5"/></svg>
+        Buzz
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="3.5"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        Prospects
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        Clients
+      </a>
+
+      <div class="nav-section">Workflows</div>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4Z"/></svg>
+        Onboarding
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Periodic Review
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        Servicing
+        <span class="chev-right"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        Offboarding
+      </a>
+
+      <div class="nav-section">Admin</div>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Org Settings
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.5"/><path d="M19 8v6M22 11h-6"/></svg>
+        User Management
+      </a>
+
+      <div class="spacer">
+        <div class="sidebar-art p-marks" id="brandArt"></div>
+        <div class="sidebar-fade"></div>
+      </div>
+
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7"/><path d="M12 17h.01"/></svg>
+        Help Centre
+      </a>
+
+      <div class="profile">
+        <span class="ava">🧑</span>
+        <div>
+          <div class="pname">Olivia Brown</div>
+          <div class="prole">Relationship Manager</div>
+        </div>
+        <span class="dots"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></span>
+      </div>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <div class="main">
+      <header class="topbar">
+        <h1>Prospects</h1>
+        <div class="actions">
+          <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+          <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+          <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="toolbar">
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" placeholder="Search for prospects by name, ID, RM" />
+          </div>
+          <button class="filter-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+          <button class="add-btn">+ Add New Prospect</button>
+        </div>
+
+        <div class="table">
+          <div class="thead">
+            <div class="col first"><input type="checkbox" class="cb" /> Prospect</div>
+            <div class="col">Services</div>
+            <div class="col">AUM <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></div>
+            <div class="col">Entity</div>
+            <div class="col">Assigned RM</div>
+            <div class="col">Stage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></div>
+          </div>
+          <div id="rows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THEME LAB ============ -->
+  <button class="lab-toggle" id="labToggle" title="Theme Lab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="10" cy="20" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2v-1a2 2 0 0 1 2-2h1c1.1 0 2-.9 2-2a10 10 0 0 0-9-11Z"/></svg>
+  </button>
+
+  <div class="lab" id="lab">
+    <h3>Vantage Theme Lab</h3>
+    <div class="sub">Pick a Vantage foundation (90%), then load one tenant brand colour (10%).</div>
+
+    <div class="group-label">Foundation · Vantage owns</div>
+    <div class="presets" id="presets"></div>
+
+    <div class="group-label">Tenant brand · one colour + accent</div>
+    <div class="presets" id="brands"></div>
+    <div id="pickers"></div>
+
+    <div class="group-label">Branding pattern</div>
+    <div class="patterns" id="patterns"></div>
+
+    <button class="reset" id="reset">Reset brand colours</button>
+    <button class="export" id="export">Copy CSS variables</button>
+  </div>
+
+  <script src="vantage-theme.js"></script>
+  <script>
+    /* ---------- Prospect data ---------- */
+    const data = [
+      { in:"RG", c:"#fde0a6", name:"Rebecaa Geller", badge:"Individual", svc:"Advisory", aum:"23.46M", ent:"LCPL", rm:"Olivia Brown", stage:"Compliance Review" },
+      { in:"SW", c:"#fbe3a3", name:"Sophia Williams", badge:"Trust", svc:"Discretionary, Advisory", aum:"21M", ent:"LCC", rm:"Olivia Brown", stage:"CCO Approval Pending" },
+      { in:"AT", c:"#b9c4f5", name:"Arthur Taylor", badge:"Entity", svc:"Family Office Services", aum:"23.46M", ent:"LCUK", rm:"Olivia Brown", stage:"Client Onboarding Intiated" },
+      { in:"EW", c:"#a7e3ee", name:"Emma Wright", badge:"Joint", svc:"Advisory", aum:"3.46M", ent:"LCC", rm:"Olivia Brown", stage:"Compliance Review" },
+      { in:"MJ", c:"#c9b8f3", name:"Matthew Johnson", badge:"", svc:"Family Office Services", aum:"123M", ent:"LCC", rm:"Olivia Brown", stage:"Compliance Review" },
+      { in:"MJ", c:"#b9c4f5", name:"Michael Johnson", badge:"", svc:"Family Office Services", aum:"15.75M", ent:"LCPL", rm:"Olivia Brown", stage:"CCO Approved" },
+      { in:"SM", c:"#f7b8c4", name:"Sofia Martinez", badge:"", svc:"Discretionary, Advisory", aum:"30.12M", ent:"LCUK", rm:"Olivia Brown", stage:"CCO Approval Pending" },
+      { in:"EB", c:"#c9b8f3", name:"Ethan Brown", badge:"", svc:"Discretionary", aum:"22.58M", ent:"LCC", rm:"Olivia Brown", stage:"CCO Approval Pending" },
+      { in:"ON", c:"#f7b8c4", name:"Olivia Nguyen", badge:"", svc:"Advisory", aum:"18.34M", ent:"LCPL", rm:"Olivia Brown", stage:"CCO Approved" },
+      { in:"LL", c:"#e7e7ea", name:"Lucas Lee", badge:"", svc:"Family Office Services", aum:"27.89M", ent:"LCUK", rm:"Olivia Brown", stage:"CCO Approval Pending" },
+    ];
+
+    document.getElementById("rows").innerHTML = data.map(d => `
+      <div class="row">
+        <div class="prospect">
+          <input type="checkbox" class="cb" />
+          <div class="avatar" style="background:${d.c}">${d.in}</div>
+          <div class="pinfo">
+            <div class="nm">${d.name} ${d.badge ? `<span class="badge">${d.badge}</span>` : ""}</div>
+            <div class="id">PR001234</div>
+          </div>
+        </div>
+        <div class="cell muted">${d.svc}</div>
+        <div class="cell">${d.aum}</div>
+        <div class="cell muted">${d.ent}</div>
+        <div class="cell muted">${d.rm}</div>
+        <div class="cell">${d.stage}</div>
+      </div>`).join("");
+
+    /* ---------- Theme: foundation (90%) + ONE tenant brand colour (10%) ---------- */
+    const root = document.documentElement;
+    const F = VantageTheme.FOUNDATIONS;
+    const B = VantageTheme.BRANDS;
+    let state = { foundation: "Slate", brand: { ...B.salesforce } };
+
+    /* Map the shared contract vars onto this page's existing var names. */
+    function appVars(fKey, brand){
+      const v = VantageTheme.vars(fKey, brand);
+      return {
+        "--sidebar-bg": v["--sidebar"],
+        "--sidebar-text": v["--on-sidebar"],
+        "--sidebar-text-muted": v["--on-sidebar-muted"],
+        "--sidebar-section": v["--on-sidebar-subtle"],
+        "--sidebar-active-bg": v["--sidebar-active"],
+        "--sidebar-active-text": v["--on-sidebar-active"],
+        "--sidebar-indicator": v["--sidebar-indicator"],
+        "--sidebar-border": v["--sidebar-hairline"],
+        "--app-bg": v["--canvas"],
+        "--surface": v["--surface"],
+        "--text": v["--ink"],
+        "--text-muted": v["--ink-muted"],
+        "--text-faint": v["--ink-subtle"],
+        "--border": v["--hairline"],
+        "--row-border": v["--hairline"],
+        "--row-hover": v["--surface-alt"],
+        "--input-bg": v["--canvas"],
+        "--input-border": v["--hairline"],
+        "--input-text": v["--ink"],
+        "--accent": v["--brand"],
+        "--accent-text": v["--on-brand"],
+        "--accent-weak": v["--brand-weak"],
+        "--icon": v["--ink-muted"],
+        "--badge-border": v["--hairline"],
+        "--badge-text": v["--ink-muted"],
+        "--sidebar-pat": v["--on-sidebar"],
+      };
+    }
+    function applyTheme(){
+      const v = appVars(state.foundation, state.brand);
+      Object.entries(v).forEach(([k,val]) => root.style.setProperty(k,val));
+      document.querySelectorAll("[data-fnd]").forEach(el => el.classList.toggle("active", el.dataset.fnd === state.foundation));
+      document.querySelectorAll("[data-brand]").forEach(el => el.classList.toggle("active", el.dataset.brand === state.brand.key));
+      /* Update sidebar tenant logo */
+      const mark = document.getElementById("brandMark");
+      const nameEl = document.getElementById("brandName");
+      if (mark) { mark.textContent = state.brand.initial || state.brand.name[0]; mark.style.background = state.brand.primary; }
+      if (nameEl) nameEl.textContent = state.brand.name;
+      syncPickers();
+    }
+
+    // Foundation presets (90% — Vantage owns)
+    document.getElementById("presets").innerHTML = Object.values(F).map(f=>`
+      <div class="preset" data-fnd="${f.name}">
+        <div class="swatch" style="background:${f.surface};border:1px solid ${f.hairline}"></div>${f.name}
+      </div>`).join("");
+    document.querySelectorAll("[data-fnd]").forEach(el => el.onclick = () => { state.foundation = el.dataset.fnd; applyTheme(); });
+
+    // Brand chips (10% — one tenant colour + accent)
+    document.getElementById("brands").innerHTML = Object.values(B).map(b=>`
+      <div class="preset" data-brand="${b.key}">
+        <div class="swatch" style="background:${b.primary}"></div>${b.name}
+      </div>`).join("");
+    document.querySelectorAll("[data-brand]").forEach(el => el.onclick = () => { state.brand = { ...B[el.dataset.brand] }; applyTheme(); });
+
+    // Pickers: brand colour + accent only
+    const PICKS = [ { key:"primary", label:"Brand colour" }, { key:"accent", label:"Accent" } ];
+    document.getElementById("pickers").innerHTML = PICKS.map(p=>`
+      <div class="picker">
+        <label>${p.label}</label>
+        <div class="ctl"><span class="hex" id="hex-${p.key}"></span><input type="color" data-pick="${p.key}" /></div>
+      </div>`).join("");
+    function syncPickers(){
+      PICKS.forEach(p=>{
+        const val = state.brand[p.key] || state.brand.primary;
+        const inp = document.querySelector(`input[data-pick="${p.key}"]`); if(inp) inp.value = val;
+        const lbl = document.getElementById("hex-"+p.key); if(lbl) lbl.textContent = String(val).toUpperCase();
+      });
+    }
+    document.querySelectorAll('input[data-pick]').forEach(inp=>{
+      inp.oninput = e => { state.brand = { ...state.brand, key:"custom", name:"Custom", [e.target.dataset.pick]: e.target.value }; applyTheme(); };
+    });
+
+    /* ---------- Branding patterns ---------- */
+    const PATTERNS = [
+      { cls:"p-none",         label:"None" },
+      { cls:"p-marks",        label:"Marks" },
+      { cls:"p-diamond-grid", label:"Diamonds" },
+      { cls:"p-dots",         label:"Dots" },
+      { cls:"p-grid",         label:"Grid" },
+      { cls:"p-diamonds",     label:"Cross-hatch" },
+      { cls:"p-stripes",      label:"Stripes" },
+      { cls:"p-rings",        label:"Rings" },
+      { cls:"p-glow",         label:"Glow" },
+      { cls:"p-mesh",         label:"Mesh" },
+    ];
+    const brandArt = document.getElementById("brandArt");
+    let activePattern = "p-marks";
+
+    document.getElementById("patterns").innerHTML = PATTERNS.map(p => `
+      <div class="pat-thumb" data-cls="${p.cls}">
+        <div class="swatch-pat ${p.cls}"></div>
+        <span class="pname">${p.label}</span>
+      </div>`).join("");
+
+    function applyPattern(cls) {
+      activePattern = cls;
+      brandArt.className = "sidebar-art " + cls;
+      document.querySelectorAll(".pat-thumb").forEach(t => t.classList.toggle("active", t.dataset.cls === cls));
+    }
+    document.querySelectorAll(".pat-thumb").forEach(t => t.onclick = () => applyPattern(t.dataset.cls));
+    applyPattern("p-marks");
+
+    document.getElementById("reset").onclick = () => { state.brand = { ...B.salesforce }; applyTheme(); };
+    document.getElementById("export").onclick = () => {
+      const v = VantageTheme.vars(state.foundation, state.brand);
+      const lines = [":root {", ...Object.entries(v).map(([k,val]) => `  ${k}: ${val};`), "}"];
+      navigator.clipboard.writeText(lines.join("\n"));
+      const b = document.getElementById("export"); const t=b.textContent;
+      b.textContent = "Copied ✓"; setTimeout(()=>b.textContent=t, 1400);
+    };
+
+    document.getElementById("labToggle").onclick = () => document.getElementById("lab").classList.toggle("open");
+
+    /* Deep-link: ?foundation=Slate|Porcelain|Graphite|Mist & ?brand=vantage|salesforce|slack|lighthouse
+       (or ?primary=%23xxxxxx&accent=%23yyyyyy) */
+    const sel = VantageTheme.fromUrl();
+    state.foundation = sel.foundation;
+    state.brand = sel.brand.key ? { ...sel.brand } : sel.brand;
+    applyTheme();
+  </script>
+</body>
+</html>

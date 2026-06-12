@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vantage — Brand Setup (White-Label Admin)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0B1520; --page-bg: #F5F6F8; --surface: #fff; --border: #E5E9EF;
+      --muted: #6B7686; --body: #2C3E45; --brandk: #083344;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--page-bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+    .topbar { position: sticky; top: 0; z-index: 30; display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 32px; background: #fff; border-bottom: 1px solid var(--border); }
+    .topbar .left { display: flex; align-items: center; gap: 13px; }
+    .mk { width: 26px; height: 26px; background: #0B1520; border-radius: 7px; display: grid; place-items: center; }
+    .mk span { width: 9px; height: 9px; border: 1.8px solid #fff; border-radius: 50%; }
+    .word { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+    .sub  { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #8A98A6; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: #5B6B7B; font-weight: 500;
+      padding: 5px 11px; background: #F1F4F8; border: 1px solid var(--border); border-radius: 999px; }
+    .chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--brandk); }
+
+    .page { max-width: 1320px; margin: 0 auto; padding: 32px; display: grid; grid-template-columns: 430px 1fr; gap: 32px; align-items: start; }
+    .heading { grid-column: 1 / -1; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8A98A6; margin-bottom: 12px; font-weight: 600; }
+    .h1 { font-size: 36px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; margin-bottom: 10px; }
+    .h1 .dim { color: #8A98A6; }
+    .lead { font-size: 15px; line-height: 1.55; color: var(--body); max-width: 70ch; }
+
+    .form { display: flex; flex-direction: column; gap: 18px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+    .card h3 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .card .helper { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+    .field { margin-bottom: 13px; } .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; margin-bottom: 6px; }
+    .field input[type="text"] { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 7px; font: inherit; font-size: 13px; background: #fff; outline: none; }
+    .field input[type="text"]:focus { border-color: var(--brandk); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+    .logo-drop { border: 1.5px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; background: #FAFBFC; transition: border-color .15s, background .15s; }
+    .logo-drop:hover { border-color: var(--brandk); background: #fff; }
+    .logo-drop .ic { width: 34px; height: 34px; border-radius: 50%; background: #EEF1F5; margin: 0 auto 9px; display: grid; place-items: center; color: #5B6B7B; }
+    .logo-drop .t { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .logo-drop .s { font-size: 11px; color: var(--muted); }
+    .logo-drop input { display: none; }
+    .logo-preview { display: none; align-items: center; gap: 14px; padding: 12px; background: #FAFBFC; border-radius: 8px; }
+    .logo-preview.show { display: flex; }
+    .logo-preview .ph { width: 54px; height: 54px; border-radius: 8px; background: #fff; border: 1px solid var(--border); display: grid; place-items: center; overflow: hidden; }
+    .logo-preview .ph img { max-width: 100%; max-height: 100%; }
+    .logo-preview .info { flex: 1; } .logo-preview .info b { display: block; font-size: 13px; } .logo-preview .info span { font-size: 11px; color: var(--muted); }
+    .logo-preview button { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--muted); }
+    .logo-preview button:hover { color: #BE2A2A; }
+
+    .grid4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .fcard { cursor: pointer; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s; }
+    .fcard:hover { border-color: #c9d2dc; }
+    .fcard.active { border-color: #0B1520; box-shadow: 0 2px 8px rgba(16,24,40,0.10); }
+    .fcard .sw { display: flex; gap: 3px; margin-bottom: 9px; }
+    .fcard .sw i { width: 20px; height: 26px; border-radius: 4px; }
+    .fcard .nm { font-size: 13px; font-weight: 600; } .fcard .rf { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .bchip { cursor: pointer; display: flex; align-items: center; gap: 9px; padding: 8px 13px 8px 9px; border-radius: 9px; background: #fff; border: 1.5px solid var(--border); transition: all .15s; }
+    .bchip:hover { border-color: #c9d2dc; }
+    .bchip.active { border-color: var(--bp, #0B1520); }
+    .bchip .av { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700; }
+    .bchip .nm { font-size: 12.5px; font-weight: 600; } .bchip .kd { font-size: 10px; color: var(--muted); }
+
+    .picker-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pickrow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; background: #fff; }
+    .pickrow .info { flex: 1; min-width: 0; } .pickrow .info b { display: block; font-size: 11px; font-weight: 600; } .pickrow .info span { font-size: 10.5px; color: var(--muted); }
+    .pickrow input[type="color"] { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 6px; background: none; padding: 2px; cursor: pointer; }
+
+    .patgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .pat { aspect-ratio: 1; cursor: pointer; border: 1.5px solid var(--border); border-radius: 6px; background-color: var(--brandk); position: relative; overflow: hidden; }
+    .pat:hover { border-color: #c9d2dc; } .pat.active { border-color: #0B1520; box-shadow: 0 0 0 2px rgba(11,21,32,0.12); }
+    .pat .l { position: absolute; inset: 0; } .pat .lbl { position: absolute; bottom: 2px; left: 2px; font-size: 8.5px; font-weight: 600; background: rgba(255,255,255,0.85); color: #0B1520; padding: 1px 4px; border-radius: 2px; }
+    .p-none .l { background: none; }
+    .p-dots .l { background-image: radial-gradient(color-mix(in srgb, var(--pa) 60%, transparent) 1.1px, transparent 1.4px); background-size: 9px 9px; }
+    .p-grid .l { background-image: linear-gradient(color-mix(in srgb, var(--pa) 26%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--pa) 26%, transparent) 1px, transparent 1px); background-size: 10px 10px; }
+    .p-stripes .l { background-image: repeating-linear-gradient(60deg, color-mix(in srgb, var(--pa) 34%, transparent) 0 3px, transparent 3px 8px); }
+    .p-mesh .l { background-image: radial-gradient(65% 85% at 0% 0%, color-mix(in srgb, var(--pa) 48%, transparent), transparent 70%), radial-gradient(75% 95% at 100% 100%, color-mix(in srgb, var(--pa) 34%, transparent), transparent 72%); }
+    .p-marks .l { background-color: color-mix(in srgb, var(--pa) 42%, transparent); -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E"); -webkit-mask-size: 14px; mask-size: 14px; -webkit-mask-repeat: repeat; mask-repeat: repeat; }
+
+    .contrast { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .crow { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; background: #fff; }
+    .crow .lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .crow .ratio { font-size: 11.5px; font-weight: 700; }
+    .grade { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 999px; color: #fff; }
+
+    .actions { display: flex; gap: 10px; padding-top: 4px; }
+    .actions .save { flex: 1; padding: 12px; background: #0B1520; color: #fff; border: none; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .actions .save:hover { filter: brightness(1.3); } .actions .save:disabled { background: #b3bcc6; cursor: not-allowed; }
+    .actions .secondary { padding: 12px 14px; background: #fff; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+
+    .preview-wrap { position: sticky; top: 80px; }
+    .ptabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .ptab { padding: 8px 14px; font-size: 12.5px; font-weight: 500; background: #fff; border: 1px solid var(--border); border-radius: 7px; cursor: pointer; color: var(--muted); }
+    .ptab.active { background: #0B1520; color: #fff; border-color: #0B1520; }
+    .frame { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 12px 36px -16px rgba(0,0,0,0.18); }
+    .frame .chrome { height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 14px; background: #f7f8fa; border-bottom: 1px solid var(--border); }
+    .frame .chrome i { width: 9px; height: 9px; border-radius: 50%; background: #d8dde3; }
+    .stage { height: 600px; overflow: hidden; position: relative; }
+
+    /* ---- preview: sign-in ---- */
+    .pv-signin { display: grid; grid-template-columns: 1fr 300px; gap: 30px; padding: 30px; width: 100%; height: 100%; align-items: center;
+      background: linear-gradient(135deg, var(--c-canvas) 0%, var(--c-surface) 45%, var(--c-surfaceAlt) 100%); }
+    .pv-signin .eb { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c-inkMuted); margin-bottom: 12px; font-weight: 600; }
+    .pv-signin .hero { font-size: 30px; font-weight: 600; line-height: 1.05; letter-spacing: -0.025em; color: var(--c-ink); }
+    .pv-signin .hero .dim { color: var(--c-inkMuted); }
+    .pv-signin .cd { background: var(--c-canvas); border: 1px solid var(--c-hairline); border-radius: 14px; padding: 22px; box-shadow: 0 18px 40px -18px rgba(0,0,0,0.2); }
+    .pv-signin .cd .lr { text-align: center; margin-bottom: 14px; }
+    .pv-signin .cd .lr .diam { width: 16px; height: 16px; background: var(--c-brand); transform: rotate(45deg); display: inline-block; vertical-align: middle; margin-right: 6px; }
+    .pv-signin .cd .lr b { font-size: 17px; font-weight: 600; color: var(--c-ink); vertical-align: middle; }
+    .pv-signin .cd h4 { text-align: center; font-size: 15px; font-weight: 600; color: var(--c-ink); margin-bottom: 14px; }
+    .pv-signin .cd .inp { height: 32px; border: 1px solid var(--c-hairline); border-radius: 6px; margin-bottom: 8px; background: var(--c-surface); }
+    .pv-signin .cd .btn { padding: 9px; background: var(--c-brand); color: var(--c-onBrand); text-align: center; font-size: 12px; font-weight: 600; border-radius: 6px; margin-top: 6px; }
+
+    /* ---- preview: prospects ---- */
+    .pv-app { display: grid; grid-template-columns: 180px 1fr; width: 100%; height: 100%; background: var(--c-canvas); }
+    .pv-app .sb { background: var(--c-sidebar); border-right: 1px solid rgba(255,255,255,0.08); padding: 16px 12px; display: flex; flex-direction: column; gap: 9px; position: relative; overflow: hidden; }
+    .pv-app .sb .br { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; color: var(--c-onSidebar); margin-bottom: 8px; }
+    .pv-app .sb .br .mk2 { width: 22px; height: 22px; border-radius: 6px; background: var(--c-brand); display: grid; place-items: center; color: var(--c-onBrand); font-size: 12px; font-weight: 700; }
+    .pv-app .sb .nv { font-size: 11.5px; padding: 7px 9px; border-radius: 6px; color: color-mix(in srgb, var(--c-onSidebar) 60%, transparent); }
+    .pv-app .sb .nv.act { background: color-mix(in srgb, var(--c-brand) 22%, var(--c-sidebar)); color: var(--c-onSidebar); font-weight: 600; display: flex; align-items: center; gap: 7px; box-shadow: inset 3px 0 0 var(--c-accent); }
+    .pv-app .sb .nv.act .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--c-accent); margin-left: auto; }
+    .pv-app .sb .pat { position: absolute; left: 0; right: 0; top: 200px; bottom: 42px; pointer-events: none; opacity: .12;
+      background-color: color-mix(in srgb, var(--c-onSidebar) 60%, transparent);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+              mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
+      -webkit-mask-size: 15px; mask-size: 15px; -webkit-mask-repeat: repeat; mask-repeat: repeat;
+      -webkit-mask-composite: source-in; }
+    .pv-app .mn { padding: 16px 18px; overflow: hidden; }
+    .pv-app .mn h5 { font-size: 16px; font-weight: 600; color: var(--c-ink); margin-bottom: 12px; }
+    .pv-app .mn .tb { display: flex; gap: 8px; margin-bottom: 12px; }
+    .pv-app .mn .tb .se { flex: 1; height: 30px; border: 1px solid var(--c-hairline); border-radius: 6px; background: var(--c-surface); }
+    .pv-app .mn .tb .cta { padding: 0 12px; height: 30px; background: var(--c-brand); color: var(--c-onBrand); border-radius: 6px; font-size: 11px; font-weight: 600; display: flex; align-items: center; white-space: nowrap; }
+    .pv-app .mn .rw { display: grid; grid-template-columns: 28px 1fr 1fr 1fr; align-items: center; padding: 9px 0; gap: 10px; border-bottom: 1px solid var(--c-hairline); font-size: 11px; color: var(--c-ink); }
+    .pv-app .mn .rw .av { width: 22px; height: 22px; border-radius: 50%; }
+    .pv-app .mn .rw .nm { font-weight: 600; }
+    .pv-app .mn .rw .mu { color: var(--c-inkMuted); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="left">
+      <span class="mk"><span></span></span>
+      <div><div class="word">Vantage</div><div class="sub">Brand Setup · White-Label Admin</div></div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center;">
+      <span class="chip" id="chipBrand"><i></i> Brand · Vantage</span>
+      <span class="sub" id="chipTenant">Tenant · lighthouse-canton</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="heading">
+      <div class="eyebrow">01 · Brand Configuration</div>
+      <h1 class="h1">Set up your <span class="dim">brand identity.</span></h1>
+      <p class="lead">Pick a Vantage foundation (the 90% Vantage owns), then load <strong>one</strong> brand colour — plus an optional accent — for the 10% slot. Upload a logo, choose a pattern, verify accessibility, publish.</p>
+    </div>
+
+    <section class="form">
+      <div class="card">
+        <h3>Tenant Identity</h3>
+        <p class="helper">Subdomain and display name — appear in the URL and product UI.</p>
+        <div class="row2">
+          <div class="field"><label>Display Name</label><input type="text" id="tName" value="Lighthouse Canton" /></div>
+          <div class="field"><label>Subdomain</label><input type="text" id="tSlug" value="lighthouse" /></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Logo</h3>
+        <p class="helper">SVG preferred. Falls back to a text wordmark from the Display Name.</p>
+        <label class="logo-drop" id="logoDrop">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5-5 5 5M12 5v12"/></svg></div>
+          <div class="t">Upload logo</div><div class="s">SVG, PNG · max 1 MB</div>
+          <input type="file" id="logoFile" accept=".svg,.png,.jpg" />
+        </label>
+        <div class="logo-preview" id="logoPreview">
+          <div class="ph"><img id="logoImg" alt="" /></div>
+          <div class="info"><b id="logoName">—</b><span id="logoSize">—</span></div>
+          <button id="logoRemove">Remove</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Foundation · Vantage owns (90%)</h3>
+        <p class="helper">Brand-agnostic neutral system — surfaces, ink, semantics. Never changes per client.</p>
+        <div class="grid4" id="foundations"></div>
+      </div>
+
+      <div class="card">
+        <h3>Brand · client (10%)</h3>
+        <p class="helper">One brand colour + one optional accent. No secondary — keeps any client brand legible on the foundation.</p>
+        <div class="chips" id="brandChips"></div>
+        <div class="picker-list" id="pickers"></div>
+      </div>
+
+      <div class="card">
+        <h3>Sidebar Pattern</h3>
+        <p class="helper">Subtle branding texture, tinted with the accent.</p>
+        <div class="patgrid" id="patgrid"></div>
+      </div>
+
+      <div class="card">
+        <h3>Accessibility Check</h3>
+        <p class="helper">Live WCAG 2.1 ratios. Brand colour appears as fills only — on-color auto-selected. AA required to publish.</p>
+        <div class="contrast" id="contrast"></div>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="copyCss">Copy CSS variables</button>
+        <button class="save" id="publish">Save &amp; publish</button>
+      </div>
+    </section>
+
+    <aside class="preview-wrap">
+      <div class="ptabs">
+        <button class="ptab active" data-view="signin">Sign-in</button>
+        <button class="ptab" data-view="app">Product (Prospects)</button>
+      </div>
+      <div class="frame"><div class="chrome"><i></i><i></i><i></i></div><div class="stage" id="stage"></div></div>
+    </aside>
+  </main>
+
+  <script src="vantage-theme.js"></script>
+  <script>
+    const F = VantageTheme.FOUNDATIONS, B = VantageTheme.BRANDS;
+    let st = { foundation: "Slate", brand: { ...B.lighthouse }, pattern: "p-marks", view: "signin", logo: null };
+
+    /* foundation cards */
+    document.getElementById("foundations").innerHTML = Object.values(F).map(f=>`
+      <button class="fcard" data-fnd="${f.name}">
+        <div class="sw">
+          <i style="background:${f.canvas};border:1px solid ${f.hairline}"></i>
+          <i style="background:${f.surface}"></i><i style="background:${f.surfaceAlt}"></i><i style="background:${f.ink}"></i>
+        </div>
+        <div class="nm">${f.name}</div><div class="rf">${f.reference}</div>
+      </button>`).join("");
+    document.querySelectorAll("[data-fnd]").forEach(el => el.onclick = () => { st.foundation = el.dataset.fnd; apply(); });
+
+    /* brand chips */
+    document.getElementById("brandChips").innerHTML = Object.values(B).map(b=>`
+      <button class="bchip" data-brand="${b.key}" style="--bp:${b.primary}">
+        <span class="av" style="background:${b.primary}">${b.initial}</span>
+        <span><span class="nm">${b.name}</span><br><span class="kd">${b.kind}</span></span>
+      </button>`).join("");
+    document.querySelectorAll("[data-brand]").forEach(el => el.onclick = () => { st.brand = { ...B[el.dataset.brand] }; apply(); });
+
+    /* pickers: brand colour + accent */
+    const PICKS = [ { key:"primary", label:"Brand colour" }, { key:"accent", label:"Accent" } ];
+    document.getElementById("pickers").innerHTML = PICKS.map(p=>`
+      <div class="pickrow"><input type="color" data-pick="${p.key}" />
+        <div class="info"><b>${p.label}</b><span data-hex="${p.key}"></span></div></div>`).join("");
+    document.querySelectorAll('input[data-pick]').forEach(inp => inp.oninput = e => {
+      st.brand = { ...st.brand, key:"custom", name: st.brand.name === "Custom" ? "Custom" : st.brand.name, [e.target.dataset.pick]: e.target.value };
+      apply();
+    });
+
+    /* pattern grid */
+    const PATTERNS = [ {c:"p-none",l:"None"},{c:"p-marks",l:"Marks"},{c:"p-dots",l:"Dots"},{c:"p-grid",l:"Grid"},{c:"p-stripes",l:"Stripes"},{c:"p-mesh",l:"Mesh"} ];
+    document.getElementById("patgrid").innerHTML = PATTERNS.map(p=>`
+      <div class="pat ${p.c}" data-cls="${p.c}" style="--pa:${st.brand.accent||st.brand.primary}"><div class="l"></div><span class="lbl">${p.l}</span></div>`).join("");
+    document.querySelectorAll(".pat").forEach(el => el.onclick = () => { st.pattern = el.dataset.cls; apply(); });
+
+    /* preview tabs */
+    document.querySelectorAll(".ptab").forEach(b => b.onclick = () => { document.querySelectorAll(".ptab").forEach(x=>x.classList.toggle("active",x===b)); st.view = b.dataset.view; renderPreview(); });
+
+    /* logo upload */
+    const drop = document.getElementById("logoDrop"), pv = document.getElementById("logoPreview"), img = document.getElementById("logoImg");
+    document.getElementById("logoFile").onchange = e => {
+      const f = e.target.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = ev => { st.logo = ev.target.result; img.src = st.logo;
+        document.getElementById("logoName").textContent = f.name;
+        document.getElementById("logoSize").textContent = (f.size/1024).toFixed(1)+" KB";
+        pv.classList.add("show"); drop.style.display="none"; renderPreview(); };
+      rd.readAsDataURL(f);
+    };
+    document.getElementById("logoRemove").onclick = () => { st.logo=null; img.src=""; pv.classList.remove("show"); drop.style.display=""; document.getElementById("logoFile").value=""; renderPreview(); };
+
+    /* contrast pairs */
+    const PAIRS = ctx => [
+      { fg: ctx.ink,    bg: ctx.canvas,  label:"Text on Canvas" },
+      { fg: ctx.ink,    bg: ctx.surface, label:"Text on Surface" },
+      { fg: ctx.onBrand, bg: ctx.brand,  label:"On Brand colour" },
+      { fg: ctx.onAccent, bg: ctx.accent, label:"On Accent" },
+      { fg: ctx.brand,  bg: ctx.surface, label:"Brand as link" },
+      { fg: ctx.success, bg: ctx.canvas, label:"Success on Canvas" },
+    ];
+
+    function ctxFromState(){
+      const v = VantageTheme.vars(st.foundation, st.brand);
+      return { canvas:v["--canvas"], surface:v["--surface"], surfaceAlt:v["--surface-alt"], hairline:v["--hairline"],
+        ink:v["--ink"], inkMuted:v["--ink-muted"], brand:v["--brand"], onBrand:v["--on-brand"],
+        accent:v["--accent"], onAccent:v["--on-accent"], success:v["--success"],
+        sidebar:v["--sidebar"], onSidebar:v["--on-sidebar"], vars:v };
+    }
+
+    let anyFail = false;
+    function renderContrast(ctx){
+      anyFail = false;
+      document.getElementById("contrast").innerHTML = PAIRS(ctx).map(p=>{
+        const r = VantageTheme.contrast(p.fg, p.bg), g = VantageTheme.grade(r);
+        if (g.label === "FAIL") anyFail = true;
+        return `<div class="crow"><div><div class="lbl">${p.label}</div><div class="ratio">${r.toFixed(2)}:1</div></div>
+          <span class="grade" style="background:${g.bg}">${g.label}</span></div>`;
+      }).join("");
+      const pub = document.getElementById("publish");
+      pub.disabled = anyFail; pub.textContent = anyFail ? "Fix AA to publish" : "Save & publish";
+    }
+
+    const stage = document.getElementById("stage");
+    function renderPreview(){
+      const v = ctxFromState();
+      stage.style.cssText = `height:600px;overflow:hidden;position:relative;
+        --c-canvas:${v.canvas};--c-surface:${v.surface};--c-surfaceAlt:${v.surfaceAlt};--c-hairline:${v.hairline};
+        --c-ink:${v.ink};--c-inkMuted:${v.inkMuted};--c-brand:${v.brand};--c-onBrand:${v.onBrand};--c-accent:${v.accent};
+        --c-sidebar:${v.sidebar};--c-onSidebar:${v.onSidebar};`;
+      const name = (document.getElementById("tName")||{}).value || "Vantage";
+      const logoMark = st.logo ? `<img src="${st.logo}" style="max-height:28px;max-width:160px;display:block;margin:0 auto" />`
+        : `<span class="diam"></span><b>${name}</b>`;
+      const logoMarkApp = st.logo ? `<img src="${st.logo}" style="max-height:20px;max-width:130px" />`
+        : `<span class="mk2">${name[0].toUpperCase()}</span><span>${name}</span>`;
+      if (st.view === "signin") {
+        stage.innerHTML = `<div class="pv-signin">
+          <div><div class="eb">AI-Native Operations</div>
+            <div class="hero">Every signal.<br>Every relationship.<br><span class="dim">One Vantage.</span></div></div>
+          <div class="cd"><div class="lr">${logoMark}</div><h4>Welcome back</h4>
+            <div class="inp"></div><div class="inp"></div><div class="btn">Sign in</div></div>
+        </div>`;
+      } else {
+        stage.innerHTML = `<div class="pv-app">
+          <div class="sb">
+            <div class="br">${logoMarkApp}</div>
+            <div class="nv act"><span class="dot"></span>Dashboard</div>
+            <div class="nv">Buzz</div><div class="nv">Prospects</div><div class="nv">Clients</div>
+            <div class="nv" style="opacity:.5;font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-top:6px">Workflows</div>
+            <div class="nv">Onboarding</div><div class="nv">Servicing</div>
+            <div class="pat"></div>
+          </div>
+          <div class="mn"><h5>Prospects</h5>
+            <div class="tb"><div class="se"></div><div class="cta">+ Add New</div></div>
+            <div class="rw"><div class="av" style="background:#fde0a6"></div><div class="nm">Rebecaa Geller</div><div class="mu">Advisory</div><div>23.46M</div></div>
+            <div class="rw"><div class="av" style="background:#b9c4f5"></div><div class="nm">Arthur Taylor</div><div class="mu">Family Office</div><div>23.46M</div></div>
+            <div class="rw"><div class="av" style="background:#a7e3ee"></div><div class="nm">Emma Wright</div><div class="mu">Advisory</div><div>3.46M</div></div>
+            <div class="rw"><div class="av" style="background:#c9b8f3"></div><div class="nm">Matthew Johnson</div><div class="mu">Family Office</div><div>123M</div></div>
+            <div class="rw"><div class="av" style="background:#f7b8c4"></div><div class="nm">Sofia Martinez</div><div class="mu">Discretionary</div><div>30.12M</div></div>
+          </div>
+        </div>`;
+      }
+    }
+
+    function apply(){
+      const ctx = ctxFromState();
+      document.documentElement.style.setProperty("--brandk", ctx.brand);
+      document.querySelectorAll("[data-fnd]").forEach(el => el.classList.toggle("active", el.dataset.fnd === st.foundation));
+      document.querySelectorAll("[data-brand]").forEach(el => el.classList.toggle("active", el.dataset.brand === st.brand.key));
+      document.querySelectorAll(".pat").forEach(el => { el.style.setProperty("--pa", st.brand.accent||st.brand.primary); el.classList.toggle("active", el.dataset.cls === st.pattern); });
+      PICKS.forEach(p => { const val = st.brand[p.key] || st.brand.primary;
+        const inp = document.querySelector(`input[data-pick="${p.key}"]`); if(inp) inp.value = val;
+        const lbl = document.querySelector(`[data-hex="${p.key}"]`); if(lbl) lbl.textContent = String(val).toUpperCase(); });
+      document.getElementById("chipBrand").innerHTML = `<i style="background:${ctx.brand}"></i> Brand · ${st.brand.name}`;
+      document.getElementById("chipTenant").textContent = "Tenant · " + ((document.getElementById("tSlug")||{}).value || "tenant");
+      renderContrast(ctx);
+      renderPreview();
+    }
+
+    document.getElementById("copyCss").onclick = () => {
+      const v = VantageTheme.vars(st.foundation, st.brand);
+      const lines = [":root {", ...Object.entries(v).map(([k,val])=>`  ${k}: ${val};`), `  --pattern: ${st.pattern};`, "}"];
+      navigator.clipboard.writeText(lines.join("\n"));
+      const b = document.getElementById("copyCss"); const t=b.textContent; b.textContent="Copied ✓"; setTimeout(()=>b.textContent=t,1400);
+    };
+    document.getElementById("publish").onclick = () => { const b=document.getElementById("publish"); const t=b.textContent; b.textContent="Published ✓ Live in 30s"; setTimeout(()=>b.textContent=t,2400); };
+    document.getElementById("tName").oninput = renderPreview;
+    document.getElementById("tSlug").oninput = () => { document.getElementById("chipTenant").textContent = "Tenant · " + (document.getElementById("tSlug").value||"tenant"); };
+
+    apply();
+  </script>
+</body>
+</html>
