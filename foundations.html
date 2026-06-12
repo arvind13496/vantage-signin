@@ -47,26 +47,44 @@ const FOUNDATIONS = [
     rationale:'The default workhorse. Cool, balanced greys with crisp hairlines — neutral enough to host any client brand without color clash, confident enough to feel like modern fintech infrastructure.',
     compositionNote:'Brand color touches only nav, CTAs and the header band. Text is always foundation Ink, so a client could load a near-white or a near-black brand and the product stays perfectly legible.',
     canvas:'#FFFFFF', surface:'#F6F8FA', surfaceAlt:'#EDF1F6', hairline:'#E2E8F0',
-    ink:'#0B1520', inkMuted:'#5B6B7B', inkSubtle:'#94A2B0',
+    ink:'#0B1520', inkMuted:'#5B6B7B', inkSubtle:'#94A2B0', sidebar:'#0E1726',
     success:'#15803D', warning:'#B45309', error:'#BE2A2A' },
   { name:'Porcelain', reference:'Mercury-style warmth', isDark:false,
     rationale:'A warmer, softer neutral for private-client and advisory surfaces. Low-contrast warm greys reduce screen fatigue across long review sessions and read as premium rather than utilitarian.',
     compositionNote:'Warm neutrals carry everything. Because the brand only fills 10%, even a cool or vivid client brand sits cleanly on the warm base without the two palettes fighting.',
     canvas:'#FFFFFF', surface:'#FAF9F6', surfaceAlt:'#F2F0EA', hairline:'#E9E5DD',
-    ink:'#1A1714', inkMuted:'#6E665C', inkSubtle:'#A39C90',
+    ink:'#1A1714', inkMuted:'#6E665C', inkSubtle:'#A39C90', sidebar:'#211C17',
     success:'#2F7A43', warning:'#9A6700', error:'#B23A2A' },
   { name:'Graphite', reference:'Dark-mode-first, data-dense', isDark:true,
     rationale:'A dark foundation for trading-desk density, audit logs and after-hours monitoring. High-luminance ink and brightened semantics keep dense tabular data sharp on a near-black canvas.',
     compositionNote:'Semantics are brightened for the dark canvas, never the brand. The brand still fills only 10%, so even a dark navy or aubergine client brand stays distinguishable against the surface.',
     canvas:'#0D1117', surface:'#161C24', surfaceAlt:'#1E2630', hairline:'#2B3441',
-    ink:'#E8EEF4', inkMuted:'#93A1AF', inkSubtle:'#647281',
+    ink:'#E8EEF4', inkMuted:'#93A1AF', inkSubtle:'#647281', sidebar:'#090D13',
     success:'#3FB37F', warning:'#E0A33E', error:'#F06A6A' },
   { name:'Mist', reference:'Ramp / Linear airy light', isDark:false,
     rationale:'Cool blue-grey with generous whitespace and feather-light hairlines. The most spacious, premium-minimal option — built for leadership analytics and reporting where breathing room signals clarity.',
     compositionNote:'Light slate surfaces and soft hairlines keep the UI quiet so the loaded brand reads as the single point of color. Ink owns all text; the brand never has to carry legibility.',
     canvas:'#FCFDFE', surface:'#F1F5F9', surfaceAlt:'#E4EBF2', hairline:'#DCE4EC',
-    ink:'#0F1B2D', inkMuted:'#5A6675', inkSubtle:'#8A95A3',
+    ink:'#0F1B2D', inkMuted:'#5A6675', inkSubtle:'#8A95A3', sidebar:'#0F1B2D',
     success:'#15803D', warning:'#B45309', error:'#BE2A2A' },
+  { name:'Blush', reference:'Cool ink on soft blush-white', isDark:false,
+    rationale:'A cool near-black ink on a soft blush-white canvas. Quiet warmth with a contemporary edge — distinctive without sacrificing the restrained, institutional read.',
+    compositionNote:'The blush canvas is barely tinted, so it still reads as a neutral. Brand fills 10%; the warm-white base keeps any client colour feeling intentional rather than clashing.',
+    canvas:'#FFF0FA', surface:'#FBE6F2', surfaceAlt:'#F4DAEA', hairline:'#EFD2E4',
+    ink:'#011526', inkMuted:'#5D5A66', inkSubtle:'#988E97', sidebar:'#011526',
+    success:'#15803D', warning:'#9A6700', error:'#BE2A2A' },
+  { name:'Pine', reference:'Forest green on warm cream', isDark:false,
+    rationale:'Deep forest-green ink on a warm cream canvas. The most characterful light foundation — sophisticated and editorial, suited to heritage advisory and ESG-forward desks.',
+    compositionNote:'The green lives in ink and the dark side panel, never in the brand slot. Cream surfaces stay neutral so the client colour remains the single point of brand.',
+    canvas:'#EBE8D7', surface:'#F2EFE2', surfaceAlt:'#E0DCC8', hairline:'#D5D0BA',
+    ink:'#1C3F39', inkMuted:'#5C6B63', inkSubtle:'#8A968C', sidebar:'#1C3F39',
+    success:'#2F6F3E', warning:'#92670E', error:'#9A3528' },
+  { name:'Indigo', reference:'Deep indigo, data-dense dark', isDark:true,
+    rationale:'A deep indigo dark foundation. Near-black navy canvas with indigo-lifted panels — calm and focused for after-hours monitoring and dense analytics, with brightened semantics.',
+    compositionNote:'Indigo is structural (canvas + panels), not brand. The brand still fills only 10%, so a client colour stays distinguishable against the indigo surfaces.',
+    canvas:'#080D2D', surface:'#141A47', surfaceAlt:'#2E3191', hairline:'#343B7A',
+    ink:'#EAEBFB', inkMuted:'#A9AEE0', inkSubtle:'#7077B5', sidebar:'#060A22',
+    success:'#3FB37F', warning:'#E0A33E', error:'#F06A6A' },
 ];
 
 /* ONE tenant colour (primary) + ONE optional accent. No secondary. */
@@ -363,31 +381,31 @@ function render(){
           <!-- Frame -->
           <div style="border: 1px solid #E5E9EF; background: #FFFFFF; border-radius: 16px; padding: 10px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.06);">
             <div style="height: 580px; border-radius: 10px; overflow: hidden; display: grid; grid-template-columns: 218px 1fr; background: ${f.canvas}; border: 1px solid ${f.hairline};">
-              <!-- Sidebar -->
-              <div style="background: ${f.surface}; border-right: 1px solid ${f.hairline}; padding: 20px 16px; display: flex; flex-direction: column; gap: 22px;">
+              <!-- Sidebar (dark panel) -->
+              <div style="background: ${f.sidebar}; border-right: 1px solid ${rgba(onColor(f.sidebar),0.10)}; padding: 20px 16px; display: flex; flex-direction: column; gap: 22px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <div style="width: 26px; height: 26px; border-radius: 7px; background: ${loaded.primary}; display: grid; place-items: center; color: ${loaded.onPrimary}; font-size: 12px; font-weight: 700; letter-spacing: -0.02em;">${loaded.initial}</div>
-                  <span style="font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: ${f.ink};">${loaded.name}</span>
+                  <span style="font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: ${onColor(f.sidebar)};">${loaded.name}</span>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 3px;">
-                  <div style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${f.inkSubtle}; padding: 0 11px 6px;">Workspace</div>
+                  <div style="font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${rgba(onColor(f.sidebar),0.42)}; padding: 0 11px 6px;">Workspace</div>
                   <div style="padding: 9px 11px; background: ${loaded.primary}; color: ${loaded.onPrimary}; border-radius: 8px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 9px;">
                     <span style="width: 5px; height: 5px; background: ${loaded.accent}; border-radius: 50%;"></span>
                     Book of Clients
                   </div>
-                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500;">Pipeline</div>
-                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500;">Mandates</div>
-                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
+                  <div style="padding: 9px 11px; color: ${rgba(onColor(f.sidebar),0.70)}; font-size: 12.5px; font-weight: 500;">Pipeline</div>
+                  <div style="padding: 9px 11px; color: ${rgba(onColor(f.sidebar),0.70)}; font-size: 12.5px; font-weight: 500;">Mandates</div>
+                  <div style="padding: 9px 11px; color: ${rgba(onColor(f.sidebar),0.70)}; font-size: 12.5px; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
                     <span>Compliance Queue</span>
                     <span style="background: ${f.error}; color: ${f.onError}; font-size: 9.5px; font-weight: 700; border-radius: 999px; padding: 1px 6px;">3</span>
                   </div>
-                  <div style="padding: 9px 11px; color: ${f.ink}; font-size: 12.5px; font-weight: 500;">Reports</div>
+                  <div style="padding: 9px 11px; color: ${rgba(onColor(f.sidebar),0.70)}; font-size: 12.5px; font-weight: 500;">Reports</div>
                 </div>
-                <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid ${f.hairline}; display: flex; align-items: center; gap: 10px;">
+                <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid ${rgba(onColor(f.sidebar),0.10)}; display: flex; align-items: center; gap: 10px;">
                   <div style="width: 28px; height: 28px; border-radius: 999px; background: ${loaded.primary}; display: grid; place-items: center; color: ${loaded.onPrimary}; font-size: 11px; font-weight: 600;">RM</div>
                   <div style="display: flex; flex-direction: column; line-height: 1.25;">
-                    <span style="font-size: 11.5px; font-weight: 600; color: ${f.ink};">R. Mehta</span>
-                    <span style="font-size: 10px; color: ${f.inkMuted};">Senior RM · NRI Cluster</span>
+                    <span style="font-size: 11.5px; font-weight: 600; color: ${onColor(f.sidebar)};">R. Mehta</span>
+                    <span style="font-size: 10px; color: ${rgba(onColor(f.sidebar),0.55)};">Senior RM · NRI Cluster</span>
                   </div>
                 </div>
               </div>

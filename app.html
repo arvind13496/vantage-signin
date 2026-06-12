@@ -76,13 +76,16 @@
       flex-direction: column;
       padding: 18px 14px 14px;
     }
-    /* full-height branding pattern layer behind the nav */
+    /* full-height branding pattern layer behind the nav.
+       Scope --accent to a light hint so the pattern reads on the dark panel
+       (buttons/active states outside still use the brand --accent). */
     .sidebar-art {
       position: absolute;
       inset: 0;
       z-index: 0;
-      opacity: 0.14;   /* whisper — a hint of accent, not a texture */
+      opacity: 0.10;   /* whisper — a hint, not a texture */
       pointer-events: none;
+      --accent: var(--sidebar-pat, var(--sidebar-text));
     }
     /* softens the pattern's top edge (just below User Management) and
        bottom edge (just above Help Centre) within the spacer region */
@@ -564,13 +567,13 @@
     function appVars(fKey, brand){
       const v = VantageTheme.vars(fKey, brand);
       return {
-        "--sidebar-bg": v["--surface"],
-        "--sidebar-text": v["--ink"],
-        "--sidebar-text-muted": v["--ink-muted"],
-        "--sidebar-section": v["--ink-subtle"],
+        "--sidebar-bg": v["--sidebar"],
+        "--sidebar-text": v["--on-sidebar"],
+        "--sidebar-text-muted": v["--on-sidebar-muted"],
+        "--sidebar-section": v["--on-sidebar-subtle"],
         "--sidebar-active-bg": v["--brand"],
         "--sidebar-active-text": v["--on-brand"],
-        "--sidebar-border": v["--hairline"],
+        "--sidebar-border": v["--sidebar-hairline"],
         "--app-bg": v["--canvas"],
         "--surface": v["--surface"],
         "--text": v["--ink"],
@@ -588,6 +591,7 @@
         "--icon": v["--ink-muted"],
         "--badge-border": v["--hairline"],
         "--badge-text": v["--ink-muted"],
+        "--sidebar-pat": v["--on-sidebar"],
       };
     }
     function applyTheme(){

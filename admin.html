@@ -124,14 +124,14 @@
 
     /* ---- preview: prospects ---- */
     .pv-app { display: grid; grid-template-columns: 180px 1fr; width: 100%; height: 100%; background: var(--c-canvas); }
-    .pv-app .sb { background: var(--c-surface); border-right: 1px solid var(--c-hairline); padding: 16px 12px; display: flex; flex-direction: column; gap: 9px; position: relative; overflow: hidden; }
-    .pv-app .sb .br { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; color: var(--c-ink); margin-bottom: 8px; }
+    .pv-app .sb { background: var(--c-sidebar); border-right: 1px solid rgba(255,255,255,0.08); padding: 16px 12px; display: flex; flex-direction: column; gap: 9px; position: relative; overflow: hidden; }
+    .pv-app .sb .br { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; color: var(--c-onSidebar); margin-bottom: 8px; }
     .pv-app .sb .br .mk2 { width: 22px; height: 22px; border-radius: 6px; background: var(--c-brand); display: grid; place-items: center; color: var(--c-onBrand); font-size: 12px; font-weight: 700; }
-    .pv-app .sb .nv { font-size: 11.5px; padding: 7px 9px; border-radius: 6px; color: var(--c-inkMuted); }
+    .pv-app .sb .nv { font-size: 11.5px; padding: 7px 9px; border-radius: 6px; color: color-mix(in srgb, var(--c-onSidebar) 60%, transparent); }
     .pv-app .sb .nv.act { background: var(--c-brand); color: var(--c-onBrand); font-weight: 600; display: flex; align-items: center; gap: 7px; }
     .pv-app .sb .nv.act .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--c-accent); }
-    .pv-app .sb .pat { position: absolute; left: 0; right: 0; top: 200px; bottom: 42px; pointer-events: none; opacity: .16;
-      background-color: color-mix(in srgb, var(--c-accent) 42%, transparent);
+    .pv-app .sb .pat { position: absolute; left: 0; right: 0; top: 200px; bottom: 42px; pointer-events: none; opacity: .12;
+      background-color: color-mix(in srgb, var(--c-onSidebar) 60%, transparent);
       -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
               mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M35.96 23.11c-7.4 3.09-9.87 5.61-12.95 13.02-3.08-7.46-5.55-9.93-12.95-13.02 7.4-3.09 9.87-5.61 12.95-13.02 3.08 7.46 5.55 9.93 12.95 13.02Z'/%3E%3C/svg%3E");
       -webkit-mask-size: 15px; mask-size: 15px; -webkit-mask-repeat: repeat; mask-repeat: repeat;
@@ -301,7 +301,8 @@
       const v = VantageTheme.vars(st.foundation, st.brand);
       return { canvas:v["--canvas"], surface:v["--surface"], surfaceAlt:v["--surface-alt"], hairline:v["--hairline"],
         ink:v["--ink"], inkMuted:v["--ink-muted"], brand:v["--brand"], onBrand:v["--on-brand"],
-        accent:v["--accent"], onAccent:v["--on-accent"], success:v["--success"], vars:v };
+        accent:v["--accent"], onAccent:v["--on-accent"], success:v["--success"],
+        sidebar:v["--sidebar"], onSidebar:v["--on-sidebar"], vars:v };
     }
 
     let anyFail = false;
@@ -322,7 +323,8 @@
       const v = ctxFromState();
       stage.style.cssText = `height:600px;overflow:hidden;position:relative;
         --c-canvas:${v.canvas};--c-surface:${v.surface};--c-surfaceAlt:${v.surfaceAlt};--c-hairline:${v.hairline};
-        --c-ink:${v.ink};--c-inkMuted:${v.inkMuted};--c-brand:${v.brand};--c-onBrand:${v.onBrand};--c-accent:${v.accent};`;
+        --c-ink:${v.ink};--c-inkMuted:${v.inkMuted};--c-brand:${v.brand};--c-onBrand:${v.onBrand};--c-accent:${v.accent};
+        --c-sidebar:${v.sidebar};--c-onSidebar:${v.onSidebar};`;
       const name = (document.getElementById("tName")||{}).value || "Vantage";
       const logoMark = st.logo ? `<img src="${st.logo}" style="max-height:28px;max-width:160px;display:block;margin:0 auto" />`
         : `<span class="diam"></span><b>${name}</b>`;
