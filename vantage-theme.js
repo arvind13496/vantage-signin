@@ -92,6 +92,12 @@
       '--on-sidebar-muted': rgba(onColor(f.sidebar), 0.62),
       '--on-sidebar-subtle': rgba(onColor(f.sidebar), 0.42),
       '--sidebar-hairline': rgba(onColor(f.sidebar), 0.12),
+      /* contrast-safe active nav: a brand-tinted pill (always lifts off the
+         panel for any brand) + light text + a bright accent dot indicator.
+         Avoids dark-brand-on-dark-panel where a solid brand fill vanishes. */
+      '--sidebar-active': `color-mix(in srgb, ${primary} 22%, ${f.sidebar})`,
+      '--on-sidebar-active': onColor(f.sidebar),
+      '--sidebar-indicator': accent,
       '--brand': primary,
       '--on-brand': onColor(primary),
       '--brand-weak': rgba(primary, 0.10),
