@@ -12,6 +12,12 @@
   const contrast = (fg,bg) => { const l1 = relLum(fg), l2 = relLum(bg); const [hi,lo] = l1>l2 ? [l1,l2] : [l2,l1]; return (hi+0.05)/(lo+0.05); };
   const onColor = bg => contrast(WHITE,bg) >= contrast(DARK,bg) ? WHITE : DARK;
   const rgba = (hex,a) => { const [r,g,b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; };
+  /* Blend `hex` over `base` at `ratio` (0..1 of hex), return a concrete hex —
+     lets us run live WCAG math on muted/tinted fills, not just hand them to CSS. */
+  const mixHex = (hex, ratio, base='#FFFFFF') => {
+    const a = hexToRgb(hex), b = hexToRgb(base);
+    return '#' + a.map((v,i)=> Math.round(v*ratio + b[i]*(1-ratio)).toString(16).padStart(2,'0')).join('');
+  };
   function grade(r){
     if (r>=7.0) return { label:'AAA',  bg:'#0B1520', fg:'#fff', color:'#0B7A3B' };
     if (r>=4.5) return { label:'AA',   bg:'#3A4A5A', fg:'#fff', color:'#3A4A5A' };
@@ -70,11 +76,45 @@
     lighthouse: { key:'lighthouse', name:'Lighthouse Canton', kind:'Sample client', initial:'L', primary:'#1A2B4A', accent:'#C9A227' },
   };
 
-  /* ---- Resolve a {foundation, brand:{primary,accent}} into the CSS var contract ---- */
-  function vars(foundationKey, brand) {
+  /* A neutral, tenant-agnostic light grey shell panel derived from the
+     foundation's own ink — keeps the temperature (cool/warm) without any brand. */
+  const lightShell = f => mixHex(f.ink, f.isDark ? 0.16 : 0.05, f.canvas);
+
+  /* ---- Resolve {foundation, brand, opts} into the CSS var contract ----
+     opts.brandMode  : 'forward' (exact brand) | 'shell' (brand→accents, grey nav)
+                       | 'harmonized' (brand muted to a ~38% wash, light+dark)
+     opts.sidebarStyle: 'dark' (default panel) | 'light' (grey shell + drop shadow) */
+  function vars(foundationKey, brand, opts) {
+    opts = opts || {};
+    const brandMode    = opts.brandMode    || 'forward';
+    const sidebarStyle = opts.sidebarStyle || 'dark';
     const f = FOUNDATIONS[foundationKey] || FOUNDATIONS.Slate;
     const primary = brand.primary;
     const accent  = brand.accent || primary;
+    const harmonized = brandMode === 'harmonized';
+
+    /* Brand fill for buttons/CTAs/active.
+       forward & shell -> EXACT primary (never toned down).
+       harmonized      -> ~38% wash over the canvas, computed as a real hex
+                          so its on-colour is chosen by live WCAG, not guessed. */
+    const brandFill   = harmonized ? mixHex(primary, 0.38, f.canvas) : primary;
+    const onBrandFill = onColor(brandFill);
+
+    /* Side panel. dark = the foundation's panel; light = neutral grey shell
+       lifted off the canvas with a drop shadow (depth, tenant-agnostic). */
+    const isLight = sidebarStyle === 'light';
+    const sb   = isLight ? lightShell(f) : f.sidebar;
+    const onSb = onColor(sb);
+    const sbShadow = !isLight ? 'none'
+      : (f.isDark ? '2px 0 18px rgba(0,0,0,0.55), inset -1px 0 0 rgba(255,255,255,0.05)'
+                  : '2px 0 18px rgba(16,24,40,0.10), inset -1px 0 0 rgba(16,24,40,0.04)');
+
+    /* Active nav pill. shell mode tints with INK (grey, brand-agnostic);
+       otherwise tints with the brand. Computed as hex for correct on-colour. */
+    const activeSrc  = brandMode === 'shell' ? f.ink : primary;
+    const activeWt   = isLight ? (harmonized ? 0.10 : 0.13) : 0.22;
+    const sidebarActive = mixHex(activeSrc, activeWt, sb);
+
     return {
       '--canvas': f.canvas,
       '--surface': f.surface,
@@ -88,37 +128,51 @@
       '--error': f.error,
       '--on-error': onColor(f.error),
       '--on-success': onColor(f.success),
-      /* dark side panel — decoupled from light content surface */
-      '--sidebar': f.sidebar,
-      '--on-sidebar': onColor(f.sidebar),
-      '--on-sidebar-muted': rgba(onColor(f.sidebar), 0.62),
-      '--on-sidebar-subtle': rgba(onColor(f.sidebar), 0.42),
-      '--sidebar-hairline': rgba(onColor(f.sidebar), 0.12),
-      /* contrast-safe active nav: a brand-tinted pill (always lifts off the
-         panel for any brand) + light text + a bright accent dot indicator.
-         Avoids dark-brand-on-dark-panel where a solid brand fill vanishes. */
-      '--sidebar-active': `color-mix(in srgb, ${primary} 22%, ${f.sidebar})`,
-      '--on-sidebar-active': onColor(f.sidebar),
+      /* side panel — dark or light grey shell */
+      '--sidebar': sb,
+      '--sidebar-shadow': sbShadow,
+      '--on-sidebar': onSb,
+      '--on-sidebar-muted': rgba(onSb, 0.62),
+      '--on-sidebar-subtle': rgba(onSb, 0.42),
+      '--sidebar-hairline': rgba(onSb, 0.12),
+      '--sidebar-active': sidebarActive,
+      '--on-sidebar-active': onColor(sidebarActive),
       '--sidebar-indicator': accent,
-      '--brand': primary,
-      '--on-brand': onColor(primary),
-      '--brand-weak': rgba(primary, 0.10),
+      /* brand fill (exact, or muted wash in harmonized) */
+      '--brand': brandFill,
+      '--on-brand': onBrandFill,
+      '--brand-pure': primary,                 /* always the untouched brand hex */
+      '--brand-weak': rgba(primary, harmonized ? 0.16 : 0.10),
       '--brand-soft': rgba(primary, 0.06),
       '--accent': accent,
       '--on-accent': onColor(accent),
     };
   }
 
-  function apply(styleDecl, foundationKey, brand) {
-    const v = vars(foundationKey, brand);
+  function apply(styleDecl, foundationKey, brand, opts) {
+    const v = vars(foundationKey, brand, opts);
     Object.entries(v).forEach(([k, val]) => styleDecl.setProperty(k, val));
     return v;
   }
 
-  /* Read ?foundation=Slate&brand=slack (or &primary=%23xxxxxx&accent=%23yyyyyy) */
+  /* Per-mode defaults for the 3 shareable URLs (?mode=forward|shell|harmonized) */
+  const MODES = {
+    forward:    { brandMode:'forward',    sidebarStyle:'dark',  foundation:'Slate',
+                  label:'Brand-Forward',  note:'Tenant primary at full strength — exact-hex buttons.' },
+    shell:      { brandMode:'shell',      sidebarStyle:'light', foundation:'Slate',
+                  label:'Neutral Shell',  note:'Light grey shell + drop shadow; brand kept to accents.' },
+    harmonized: { brandMode:'harmonized', sidebarStyle:'light', foundation:'Slate',
+                  label:'Harmonized',     note:'Tenant brand muted to a ~38% wash. Light + dark.' },
+  };
+
+  /* Read ?mode=&foundation=&sidebar=&brand= (or &primary=&accent=&tenant=) */
   function fromUrl() {
     const q = new URLSearchParams(location.search);
-    const foundation = FOUNDATIONS[q.get('foundation')] ? q.get('foundation') : 'Slate';
+    const mode = MODES[q.get('mode')] ? q.get('mode') : 'forward';
+    const m = MODES[mode];
+    const foundation = FOUNDATIONS[q.get('foundation')] ? q.get('foundation') : m.foundation;
+    const sidebarStyle = (q.get('sidebar') === 'dark' || q.get('sidebar') === 'light')
+      ? q.get('sidebar') : m.sidebarStyle;
     let brand;
     if (q.get('primary')) {
       brand = { name: q.get('tenant') || 'Custom', initial: (q.get('tenant')||'C')[0].toUpperCase(),
@@ -126,8 +180,8 @@
     } else {
       brand = BRANDS[q.get('brand')] || BRANDS.salesforce;
     }
-    return { foundation, brand };
+    return { mode, foundation, brand, opts: { brandMode: m.brandMode, sidebarStyle } };
   }
 
-  global.VantageTheme = { WHITE, DARK, PLATFORM, FOUNDATIONS, BRANDS, contrast, onColor, grade, rgba, vars, apply, fromUrl };
+  global.VantageTheme = { WHITE, DARK, PLATFORM, FOUNDATIONS, BRANDS, MODES, contrast, onColor, grade, rgba, mixHex, vars, apply, fromUrl };
 })(window);

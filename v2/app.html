@@ -64,9 +64,11 @@
       display: flex;
       flex-direction: column;
       position: relative;
+      z-index: 2;                              /* lift over main so the shadow shows */
       overflow: hidden;
       border-right: 1px solid var(--sidebar-border);
-      transition: background 0.25s;
+      box-shadow: var(--sidebar-shadow, none); /* drop shadow in light-shell mode */
+      transition: background 0.25s, box-shadow 0.25s;
     }
     .sidebar-inner {
       position: relative;
@@ -506,9 +508,15 @@
 
   <div class="lab" id="lab">
     <h3>Vantage Theme Lab</h3>
-    <div class="sub">Pick a Vantage foundation (90%), then load one tenant brand colour (10%).</div>
+    <div class="sub">Choose a display mode, flip the sidebar, then load a tenant brand.</div>
 
-    <div class="group-label">Foundation · Vantage owns</div>
+    <div class="group-label">Display mode</div>
+    <div class="presets" id="modes"></div>
+
+    <div class="group-label">Sidebar</div>
+    <div class="presets" id="sidebars"></div>
+
+    <div class="group-label">Foundation · Vantage owns (light / dark)</div>
     <div class="presets" id="presets"></div>
 
     <div class="group-label">Tenant brand · one colour + accent</div>
@@ -559,12 +567,20 @@
     const root = document.documentElement;
     const F = VantageTheme.FOUNDATIONS;
     const B = VantageTheme.BRANDS;
-    let state = { foundation: "Slate", brand: { ...B.salesforce } };
+    /* mode + sidebar come from ?mode=forward|shell|harmonized&sidebar=dark|light */
+    const url = VantageTheme.fromUrl();
+    let state = {
+      foundation: url.foundation,
+      brand: { ...url.brand },
+      mode: url.opts.brandMode,         // forward | shell | harmonized
+      sidebar: url.opts.sidebarStyle,   // dark | light
+    };
 
     /* Map the shared contract vars onto this page's existing var names. */
     function appVars(fKey, brand){
-      const v = VantageTheme.vars(fKey, brand);
+      const v = VantageTheme.vars(fKey, brand, { brandMode: state.mode, sidebarStyle: state.sidebar });
       return {
+        "--sidebar-shadow": v["--sidebar-shadow"],
         "--sidebar-bg": v["--sidebar"],
         "--sidebar-text": v["--on-sidebar"],
         "--sidebar-text-muted": v["--on-sidebar-muted"],
@@ -598,6 +614,8 @@
       Object.entries(v).forEach(([k,val]) => root.style.setProperty(k,val));
       document.querySelectorAll("[data-fnd]").forEach(el => el.classList.toggle("active", el.dataset.fnd === state.foundation));
       document.querySelectorAll("[data-brand]").forEach(el => el.classList.toggle("active", el.dataset.brand === state.brand.key));
+      document.querySelectorAll("[data-mode]").forEach(el => el.classList.toggle("active", el.dataset.mode === state.mode));
+      document.querySelectorAll("[data-sidebar]").forEach(el => el.classList.toggle("active", el.dataset.sidebar === state.sidebar));
       /* Update sidebar tenant logo */
       const mark = document.getElementById("brandMark");
       const nameEl = document.getElementById("brandName");
@@ -605,6 +623,26 @@
       if (nameEl) nameEl.textContent = state.brand.name;
       syncPickers();
     }
+
+    // Display-mode chips (brand intensity)
+    const MODES = VantageTheme.MODES;
+    document.getElementById("modes").innerHTML = Object.entries(MODES).map(([k,m])=>`
+      <div class="preset" data-mode="${k}" title="${m.note}">
+        <div class="swatch" style="background:${k==='harmonized'?'linear-gradient(135deg,#0176D3 40%,#fff)':k==='shell'?'#E6E9EE':'#0176D3'}"></div>${m.label}
+      </div>`).join("");
+    document.querySelectorAll("[data-mode]").forEach(el => el.onclick = () => {
+      state.mode = el.dataset.mode;
+      state.sidebar = MODES[el.dataset.mode].sidebarStyle;   // adopt the mode's default sidebar
+      applyTheme();
+    });
+
+    // Sidebar style chips (dark panel vs light grey shell)
+    const SIDEBARS = [ { k:"dark", label:"Dark panel", sw:"#0E1726" }, { k:"light", label:"Light shell", sw:"#E6E9EE" } ];
+    document.getElementById("sidebars").innerHTML = SIDEBARS.map(s=>`
+      <div class="preset" data-sidebar="${s.k}">
+        <div class="swatch" style="background:${s.sw};border:1px solid #d6dae0"></div>${s.label}
+      </div>`).join("");
+    document.querySelectorAll("[data-sidebar]").forEach(el => el.onclick = () => { state.sidebar = el.dataset.sidebar; applyTheme(); });
 
     // Foundation presets (90% — Vantage owns)
     document.getElementById("presets").innerHTML = Object.values(F).map(f=>`
@@ -670,7 +708,7 @@
 
     document.getElementById("reset").onclick = () => { state.brand = { ...B.salesforce }; applyTheme(); };
     document.getElementById("export").onclick = () => {
-      const v = VantageTheme.vars(state.foundation, state.brand);
+      const v = VantageTheme.vars(state.foundation, state.brand, { brandMode: state.mode, sidebarStyle: state.sidebar });
       const lines = [":root {", ...Object.entries(v).map(([k,val]) => `  ${k}: ${val};`), "}"];
       navigator.clipboard.writeText(lines.join("\n"));
       const b = document.getElementById("export"); const t=b.textContent;
@@ -679,11 +717,8 @@
 
     document.getElementById("labToggle").onclick = () => document.getElementById("lab").classList.toggle("open");
 
-    /* Deep-link: ?foundation=Slate|Porcelain|Graphite|Mist & ?brand=vantage|salesforce|slack|lighthouse
-       (or ?primary=%23xxxxxx&accent=%23yyyyyy) */
-    const sel = VantageTheme.fromUrl();
-    state.foundation = sel.foundation;
-    state.brand = sel.brand.key ? { ...sel.brand } : sel.brand;
+    /* Deep-link applied via `state` init from VantageTheme.fromUrl() above
+       (?mode=forward|shell|harmonized & ?sidebar=dark|light & ?foundation= & ?brand=). */
     applyTheme();
   </script>
 </body>
