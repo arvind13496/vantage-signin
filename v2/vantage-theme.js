@@ -25,7 +25,7 @@
     return       { label:'FAIL', bg:'#BE2A2A', fg:'#fff', color:'#BE2A2A' };
   }
 
-  /* ---- 4 brand-agnostic foundations (Vantage owns these — 90%) ---- */
+  /* ---- 3 brand-agnostic light foundations (Vantage owns these — 90%) ---- */
   /* Each foundation also carries a dedicated dark `sidebar` panel colour
      (decoupled from the light content surface) — the darker side panel. */
   const FOUNDATIONS = {
@@ -34,46 +34,28 @@
       canvas:'#FFFFFF', surface:'#F6F8FA', surfaceAlt:'#EDF1F6', hairline:'#E2E8F0',
       ink:'#0B1520', inkMuted:'#5B6B7B', inkSubtle:'#94A2B0', sidebar:'#0E1726',
       success:'#15803D', warning:'#B45309', error:'#BE2A2A' },
-    Porcelain: {
-      name:'Porcelain', reference:'Mercury-style warmth', isDark:false,
-      canvas:'#FFFFFF', surface:'#FAF9F6', surfaceAlt:'#F2F0EA', hairline:'#E9E5DD',
-      ink:'#1A1714', inkMuted:'#6E665C', inkSubtle:'#A39C90', sidebar:'#211C17',
-      success:'#2F7A43', warning:'#9A6700', error:'#B23A2A' },
-    Graphite: {
-      name:'Graphite', reference:'Dark-mode-first, data-dense', isDark:true,
-      canvas:'#0D1117', surface:'#161C24', surfaceAlt:'#1E2630', hairline:'#2B3441',
-      ink:'#E8EEF4', inkMuted:'#93A1AF', inkSubtle:'#647281', sidebar:'#090D13',
-      success:'#3FB37F', warning:'#E0A33E', error:'#F06A6A' },
     Mist: {
       name:'Mist', reference:'Ramp / Linear airy light', isDark:false,
       canvas:'#FCFDFE', surface:'#F1F5F9', surfaceAlt:'#E4EBF2', hairline:'#DCE4EC',
       ink:'#0F1B2D', inkMuted:'#5A6675', inkSubtle:'#8A95A3', sidebar:'#0F1B2D',
       success:'#15803D', warning:'#B45309', error:'#BE2A2A' },
-    Blush: {
-      name:'Blush', reference:'Cool ink on soft blush-white', isDark:false,
-      canvas:'#FFF0FA', surface:'#FBE6F2', surfaceAlt:'#F4DAEA', hairline:'#EFD2E4',
-      ink:'#011526', inkMuted:'#5D5A66', inkSubtle:'#988E97', sidebar:'#011526',
-      success:'#15803D', warning:'#9A6700', error:'#BE2A2A' },
-    Pine: {
-      name:'Pine', reference:'Forest green on warm cream', isDark:false,
-      canvas:'#EBE8D7', surface:'#F2EFE2', surfaceAlt:'#E0DCC8', hairline:'#D5D0BA',
-      ink:'#1C3F39', inkMuted:'#5C6B63', inkSubtle:'#8A968C', sidebar:'#1C3F39',
-      success:'#2F6F3E', warning:'#92670E', error:'#9A3528' },
-    Indigo: {
-      name:'Indigo', reference:'Deep indigo, data-dense dark', isDark:true,
-      canvas:'#080D2D', surface:'#141A47', surfaceAlt:'#2E3191', hairline:'#343B7A',
-      ink:'#EAEBFB', inkMuted:'#A9AEE0', inkSubtle:'#7077B5', sidebar:'#060A22',
-      success:'#3FB37F', warning:'#E0A33E', error:'#F06A6A' },
+    Porcelain: {
+      name:'Porcelain', reference:'Mercury-style warmth', isDark:false,
+      canvas:'#FFFFFF', surface:'#FAF9F6', surfaceAlt:'#F2F0EA', hairline:'#E9E5DD',
+      ink:'#1A1714', inkMuted:'#6E665C', inkSubtle:'#A39C90', sidebar:'#211C17',
+      success:'#2F7A43', warning:'#9A6700', error:'#B23A2A' },
   };
 
   /* ---- Vantage platform identity — NOT a tenant; used for shell chrome only ---- */
   const PLATFORM = { name:'Vantage', initial:'V', primary:'#083344', accent:'#36C5A6' };
 
-  /* ---- Sample tenant brand kits — ONE colour + ONE accent (no secondary) ---- */
+  /* ---- Sample tenant brand kits — ONE tenant primary colour each ---- */
   const BRANDS = {
-    salesforce: { key:'salesforce', name:'Salesforce',        kind:'Sample client', initial:'S', primary:'#0176D3', accent:'#FE9339' },
-    slack:      { key:'slack',      name:'Slack',             kind:'Sample client', initial:'S', primary:'#4A154B', accent:'#36C5F0' },
-    lighthouse: { key:'lighthouse', name:'Lighthouse Canton', kind:'Sample client', initial:'L', primary:'#1A2B4A', accent:'#C9A227' },
+    salesforce: { key:'salesforce', name:'Salesforce',        kind:'Sample client', initial:'S', primary:'#0176D3', accent:'#0176D3' },
+    slack:      { key:'slack',      name:'Slack',             kind:'Sample client', initial:'S', primary:'#4A154B', accent:'#4A154B' },
+    lighthouse: { key:'lighthouse', name:'Lighthouse Canton', kind:'Sample client', initial:'L', primary:'#E5001B', accent:'#E5001B' },
+    noon:       { key:'noon',       name:'Noon',              kind:'Sample client', initial:'N', primary:'#FEEE00', accent:'#FEEE00' },
+    keenai:     { key:'keenai',     name:'Keenai',            kind:'House client',  initial:'K', primary:'#F26B3A', accent:'#F26B3A' },
   };
 
   /* A neutral, tenant-agnostic light grey shell panel derived from the

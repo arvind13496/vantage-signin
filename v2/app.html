@@ -508,10 +508,7 @@
 
   <div class="lab" id="lab">
     <h3>Vantage Theme Lab</h3>
-    <div class="sub">Choose a display mode, flip the sidebar, then load a tenant brand.</div>
-
-    <div class="group-label">Display mode</div>
-    <div class="presets" id="modes"></div>
+    <div class="sub">Pick a foundation, flip the sidebar, then load a tenant brand.</div>
 
     <div class="group-label">Sidebar</div>
     <div class="presets" id="sidebars"></div>
@@ -519,7 +516,7 @@
     <div class="group-label">Foundation · Vantage owns (light / dark)</div>
     <div class="presets" id="presets"></div>
 
-    <div class="group-label">Tenant brand · one colour + accent</div>
+    <div class="group-label">Tenant brand · one colour</div>
     <div class="presets" id="brands"></div>
     <div id="pickers"></div>
 
@@ -572,7 +569,7 @@
     let state = {
       foundation: url.foundation,
       brand: { ...url.brand },
-      mode: url.opts.brandMode,         // forward | shell | harmonized
+      mode: "forward",                  // locked: Brand-Forward (tenant primary at full strength)
       sidebar: url.opts.sidebarStyle,   // dark | light
     };
 
@@ -614,7 +611,6 @@
       Object.entries(v).forEach(([k,val]) => root.style.setProperty(k,val));
       document.querySelectorAll("[data-fnd]").forEach(el => el.classList.toggle("active", el.dataset.fnd === state.foundation));
       document.querySelectorAll("[data-brand]").forEach(el => el.classList.toggle("active", el.dataset.brand === state.brand.key));
-      document.querySelectorAll("[data-mode]").forEach(el => el.classList.toggle("active", el.dataset.mode === state.mode));
       document.querySelectorAll("[data-sidebar]").forEach(el => el.classList.toggle("active", el.dataset.sidebar === state.sidebar));
       /* Update sidebar tenant logo */
       const mark = document.getElementById("brandMark");
@@ -623,18 +619,6 @@
       if (nameEl) nameEl.textContent = state.brand.name;
       syncPickers();
     }
-
-    // Display-mode chips (brand intensity)
-    const MODES = VantageTheme.MODES;
-    document.getElementById("modes").innerHTML = Object.entries(MODES).map(([k,m])=>`
-      <div class="preset" data-mode="${k}" title="${m.note}">
-        <div class="swatch" style="background:${k==='harmonized'?'linear-gradient(135deg,#0176D3 40%,#fff)':k==='shell'?'#E6E9EE':'#0176D3'}"></div>${m.label}
-      </div>`).join("");
-    document.querySelectorAll("[data-mode]").forEach(el => el.onclick = () => {
-      state.mode = el.dataset.mode;
-      state.sidebar = MODES[el.dataset.mode].sidebarStyle;   // adopt the mode's default sidebar
-      applyTheme();
-    });
 
     // Sidebar style chips (dark panel vs light grey shell)
     const SIDEBARS = [ { k:"dark", label:"Dark panel", sw:"#0E1726" }, { k:"light", label:"Light shell", sw:"#E6E9EE" } ];
@@ -658,8 +642,8 @@
       </div>`).join("");
     document.querySelectorAll("[data-brand]").forEach(el => el.onclick = () => { state.brand = { ...B[el.dataset.brand] }; applyTheme(); });
 
-    // Pickers: brand colour + accent only
-    const PICKS = [ { key:"primary", label:"Brand colour" }, { key:"accent", label:"Accent" } ];
+    // Picker: tenant brand colour only (one colour — no accent)
+    const PICKS = [ { key:"primary", label:"Brand colour" } ];
     document.getElementById("pickers").innerHTML = PICKS.map(p=>`
       <div class="picker">
         <label>${p.label}</label>
@@ -673,21 +657,15 @@
       });
     }
     document.querySelectorAll('input[data-pick]').forEach(inp=>{
-      inp.oninput = e => { state.brand = { ...state.brand, key:"custom", name:"Custom", [e.target.dataset.pick]: e.target.value }; applyTheme(); };
+      inp.oninput = e => { state.brand = { ...state.brand, key:"custom", name:"Custom", primary: e.target.value, accent: e.target.value }; applyTheme(); };
     });
 
     /* ---------- Branding patterns ---------- */
     const PATTERNS = [
-      { cls:"p-none",         label:"None" },
-      { cls:"p-marks",        label:"Marks" },
-      { cls:"p-diamond-grid", label:"Diamonds" },
-      { cls:"p-dots",         label:"Dots" },
-      { cls:"p-grid",         label:"Grid" },
-      { cls:"p-diamonds",     label:"Cross-hatch" },
-      { cls:"p-stripes",      label:"Stripes" },
-      { cls:"p-rings",        label:"Rings" },
-      { cls:"p-glow",         label:"Glow" },
-      { cls:"p-mesh",         label:"Mesh" },
+      { cls:"p-none",  label:"None" },
+      { cls:"p-marks", label:"Marks" },
+      { cls:"p-dots",  label:"Dots" },
+      { cls:"p-rings", label:"Rings" },
     ];
     const brandArt = document.getElementById("brandArt");
     let activePattern = "p-marks";
