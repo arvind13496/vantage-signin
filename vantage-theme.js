@@ -116,7 +116,7 @@
       '--on-sidebar': onSb,
       '--on-sidebar-muted': rgba(onSb, 0.62),
       '--on-sidebar-subtle': rgba(onSb, 0.42),
-      '--sidebar-hairline': rgba(onSb, 0.12),
+      '--sidebar-hairline': rgba(onSb, 0.05),
       '--sidebar-active': sidebarActive,
       '--on-sidebar-active': onColor(sidebarActive),
       '--sidebar-indicator': accent,
