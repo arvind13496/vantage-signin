@@ -87,11 +87,12 @@
     const isLight = sidebarStyle === 'light';
     const sb   = isLight ? lightShell(f) : f.sidebar;
     const onSb = onColor(sb);
-    /* Light-shell panel is lifted off the canvas with a drop shadow for depth.
-       The hard 1px divider still matches the prospect-list row strokes. */
+    /* Light-shell panel is lifted off the canvas with a soft drop shadow for
+       depth. NO inset line — the only edge stroke is the full-opacity 1px
+       border-right (var(--border)), identical to the prospect-list dividers. */
     const sbShadow = !isLight ? 'none'
-      : (f.isDark ? '2px 0 18px rgba(0,0,0,0.55), inset -1px 0 0 rgba(255,255,255,0.05)'
-                  : '2px 0 18px rgba(16,24,40,0.10), inset -1px 0 0 rgba(16,24,40,0.04)');
+      : (f.isDark ? '6px 0 18px rgba(0,0,0,0.55)'
+                  : '6px 0 18px rgba(16,24,40,0.10)');
 
     /* Active nav pill. shell mode tints with INK (grey, brand-agnostic);
        otherwise tints with the brand. Computed as hex for correct on-colour. */
